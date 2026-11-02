@@ -1,0 +1,9 @@
+{
+  "name": "profit-auto-login",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Công cụ mở Profit và đăng nhập lại khi lỗi kết nối tạm thời.",
+  "dependencies": {
+    "playwright-core": "^1.56.1"
+  }
+}
