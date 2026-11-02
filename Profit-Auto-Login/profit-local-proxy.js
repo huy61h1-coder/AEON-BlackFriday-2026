@@ -3,33 +3,12 @@
 const http = require("http");
 const https = require("https");
 const os = require("os");
-const { randomBytes } = require("crypto");
 
 const HOST = process.env.PROFIT_PROXY_HOST || "0.0.0.0";
 // Cloud platforms conventionally inject PORT. Keep the local default for
 // Windows/LAN use, while allowing a hosted process to pass its health check.
 const PORT = Number.parseInt(process.env.PORT || process.env.PROFIT_PROXY_PORT || "47832", 10);
 const TARGET_ORIGIN = "https://profit.aeon.com.vn";
-const ACCESS_COOKIE = "profit_local_access";
-const ACCESS_TOKEN = process.env.PROFIT_PROXY_TOKEN || randomBytes(24).toString("base64url");
-const TRUSTED_LAN_PREFIX = process.env.PROFIT_TRUSTED_LAN_PREFIX || "10.5.36.";
-
-function isLoopback(address = "") {
-  return address === "127.0.0.1" || address === "::1" || address === "::ffff:127.0.0.1";
-}
-
-function isTrustedLan(address = "") {
-  return address.replace(/^::ffff:/, "").startsWith(TRUSTED_LAN_PREFIX);
-}
-
-function hasAccessCookie(request) {
-  const cookies = request.headers.cookie || "";
-  return cookies.split(/;\s*/).some((cookie) => cookie === `${ACCESS_COOKIE}=${ACCESS_TOKEN}`);
-}
-
-function removeAccessCookie(cookies = "") {
-  return cookies.split(/;\s*/).filter((cookie) => !cookie.startsWith(`${ACCESS_COOKIE}=`)).join("; ");
-}
 
 function getLanAddress() {
   for (const adapter of Object.values(os.networkInterfaces())) {
@@ -195,19 +174,6 @@ function injectLoginAutomation(html, localOrigin) {
 const server = http.createServer((clientRequest, clientResponse) => {
   const localOrigin = `http://${clientRequest.headers.host || `127.0.0.1:${PORT}`}`;
   const incomingUrl = new URL(clientRequest.url, localOrigin);
-  if (!isLoopback(clientRequest.socket.remoteAddress) && !isTrustedLan(clientRequest.socket.remoteAddress) && !hasAccessCookie(clientRequest)) {
-    if (clientRequest.method === "GET" && incomingUrl.searchParams.get("access") === ACCESS_TOKEN) {
-      incomingUrl.searchParams.delete("access");
-      clientResponse.writeHead(302, {
-        Location: `${incomingUrl.pathname}${incomingUrl.search}`,
-        "Set-Cookie": `${ACCESS_COOKIE}=${ACCESS_TOKEN}; Path=/; HttpOnly; SameSite=Strict; Max-Age=28800`,
-        "Cache-Control": "no-store",
-      });
-      return clientResponse.end();
-    }
-    clientResponse.writeHead(403, { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" });
-    return clientResponse.end("Link này cần khoá truy cập. Hãy dùng đúng link LAN được cung cấp.");
-  }
   const requestUrl = new URL(`${incomingUrl.pathname}${incomingUrl.search}`, TARGET_ORIGIN);
   if (!requestUrl.pathname.startsWith("/VNM/")) {
     clientResponse.writeHead(302, { Location: "/VNM/servlet/SvltLogin", "Cache-Control": "no-store" });
@@ -217,10 +183,6 @@ const server = http.createServer((clientRequest, clientResponse) => {
   const headers = { ...clientRequest.headers, host: "profit.aeon.com.vn" };
   delete headers.connection;
   delete headers["accept-encoding"];
-  if (headers.cookie) {
-    headers.cookie = removeAccessCookie(headers.cookie);
-    if (!headers.cookie) delete headers.cookie;
-  }
   const targetRequest = https.request(requestUrl, { method: clientRequest.method, headers }, (targetResponse) => {
     const contentType = targetResponse.headers["content-type"] || "";
     if (!/text\/html/i.test(contentType)) {
@@ -245,5 +207,5 @@ const server = http.createServer((clientRequest, clientResponse) => {
 server.listen(PORT, HOST, () => {
   const lanAddress = getLanAddress();
   console.log(`Profit Proxy local: http://127.0.0.1:${PORT}/VNM/servlet/SvltLogin`);
-  if (lanAddress) console.log(`Profit Proxy LAN (no key, trusted subnet only): http://${lanAddress}:${PORT}/VNM/servlet/SvltLogin`);
+  if (lanAddress) console.log(`Profit Proxy LAN: http://${lanAddress}:${PORT}/VNM/servlet/SvltLogin`);
 });

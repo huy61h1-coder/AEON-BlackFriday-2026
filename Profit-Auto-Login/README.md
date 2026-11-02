@@ -26,7 +26,7 @@ Khối **TÙY CHỈNH AUTO LOGIN** ở góc phải có ô **Tài khoản**, **M�
 
 ## Dùng từ máy khác trong mạng nội bộ
 
-Sau khi chạy `Start-Profit-Web.cmd`, máy trong mạng Wi-Fi hiện tại `10.5.36.x` có thể truy cập trực tiếp `http://10.5.36.72:47832/VNM/servlet/SvltLogin` mà không cần khoá. Máy ngoài dải mạng này vẫn cần khoá truy cập tạm thời. Không dùng link trên mạng công khai: cổng cục bộ dùng HTTP, nên thông tin đăng nhập không được mã hoá trên đường mạng.
+Sau khi chạy `Start-Profit-Web.cmd`, máy trong cùng mạng có thể truy cập trực tiếp `http://10.5.36.72:47832/VNM/servlet/SvltLogin` mà không cần khoá. Không dùng link trên mạng công khai: cổng cục bộ dùng HTTP, nên thông tin đăng nhập không được mã hoá trên đường mạng.
 
 Mặc định công cụ thử tối đa 3 lần nếu lỗi kết nối/điều hướng. Nếu máy chủ trả lại màn hình đăng nhập (có thể do sai tài khoản, mật khẩu hoặc chưa được cấp quyền), công cụ dừng ngay để tránh khóa tài khoản.
 
