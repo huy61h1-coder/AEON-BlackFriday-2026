@@ -2,6 +2,10 @@
 
 Ứng dụng Windows cục bộ để mở `https://profit.aeon.com.vn/VNM/servlet/SvltLogin` bằng Microsoft Edge hoặc Google Chrome và đăng nhập vào Profit.
 
+## Cấu hình deploy Node.js
+
+Lệnh chạy là `npm start`. Ứng dụng tự dùng biến `PORT` do nền tảng deploy cấp; không cần khai báo `PROFIT_PROXY_PORT` trong cấu hình deployment.
+
 ## Cách dùng
 
 1. Nháy đúp `Start-Profit-AutoLogin.cmd`.

@@ -6,7 +6,9 @@ const os = require("os");
 const { randomBytes } = require("crypto");
 
 const HOST = process.env.PROFIT_PROXY_HOST || "0.0.0.0";
-const PORT = Number.parseInt(process.env.PROFIT_PROXY_PORT || "47832", 10);
+// Cloud platforms conventionally inject PORT. Keep the local default for
+// Windows/LAN use, while allowing a hosted process to pass its health check.
+const PORT = Number.parseInt(process.env.PORT || process.env.PROFIT_PROXY_PORT || "47832", 10);
 const TARGET_ORIGIN = "https://profit.aeon.com.vn";
 const ACCESS_COOKIE = "profit_local_access";
 const ACCESS_TOKEN = process.env.PROFIT_PROXY_TOKEN || randomBytes(24).toString("base64url");
