@@ -79,9 +79,9 @@ function aeonBrandOptions(selectedBrand = '') {
 }
 
 const AEON_DEFAULT_UI = {
-  eyebrow: 'MÙA TRĂNG 2026',
-  title: 'Trọn vị\nđoàn viên',
-  intro: 'Tuyển chọn hương vị tinh tế trong những hộp quà thanh lịch, để mỗi khoảnh khắc sum vầy đều thật đáng nhớ.',
+  eyebrow: 'BLACK FRIDAY 2026',
+  title: 'BlackFriday',
+  intro: 'BlackFriday 2026, Top sản phẩm có giá ưu đãi đặc biệt.',
   heroDisplayMode: 'content-image',
   promotionTitle: 'Ưu đãi mùa trăng',
   promotionText: '03–19/08: giảm 8% từ 1 triệu · 20/08–25/09: giảm 5–15% từ 3 triệu',

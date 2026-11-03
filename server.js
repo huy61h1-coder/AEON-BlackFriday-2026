@@ -405,18 +405,11 @@ function versionedHeroImage(imagePath, previewVersion = '') {
 
 function storefrontPageTitle(ui) {
   const titleText = String(ui?.title || '').replace(/\s+/g, ' ').trim();
-  return titleText || 'AEON Mooncake 2026';
+  return titleText || 'BlackFriday';
 }
 
 function socialPreviewTitle(request, ui) {
-  try {
-    // Link previews identify the site by its live subdomain, not a campaign
-    // headline that an editor may change later.
-    const hostname = new URL(requestOrigin(request)).hostname.replace(/^www\./i, '');
-    if (hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') return hostname;
-  } catch {
-    // Fall through to the editable title when a hostname is unavailable.
-  }
+  // Keep browser, storefront and social previews on the same campaign title.
   return storefrontPageTitle(ui);
 }
 
@@ -432,7 +425,7 @@ function socialPreviewMeta(request, state) {
     return '';
   }
   const title = socialPreviewTitle(request, ui);
-  const description = String(ui.intro || 'Bộ sưu tập bánh Trung Thu AEON 2026 — món quà trọn vẹn cho mùa đoàn viên.').replace(/\s+/g, ' ').trim();
+  const description = String(ui.intro || 'BlackFriday 2026, Top sản phẩm có giá ưu đãi đặc biệt.').replace(/\s+/g, ' ').trim();
   const previewUrl = new URL('/index.html', requestOrigin(request));
   previewUrl.searchParams.set('preview', `${previewVersion}-host`);
   const pageUrl = previewUrl.href;
