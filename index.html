@@ -43,14 +43,14 @@
   <link rel="stylesheet" href="official-assets.css?v=20261006-product-image-fit-lock" />
   <link rel="stylesheet" href="product-modal-fix.css" />
   <link rel="stylesheet" href="product-variants.css" />
-  <link rel="stylesheet" href="storefront-product-ux.css?v=20261103-sale-price" />
+  <link rel="stylesheet" href="storefront-product-ux.css?v=20261103-commerce-lock" />
   <link rel="stylesheet" href="brand-directory.css" />
   <link rel="stylesheet" href="storefront-admin.css" />
   <link rel="stylesheet" href="theme-customization.css" />
   <link rel="stylesheet" href="quote-download.css" />
   <link rel="stylesheet" href="catalog-search-sort.css?v=20260820-price-filter" />
   <link rel="stylesheet" href="promotion-rich-text.css?v=20260811" />
-  <link rel="stylesheet" href="black-friday.css?v=20261103-sale-price" />
+  <link rel="stylesheet" href="black-friday.css?v=20261103-commerce-lock" />
   <!-- INITIAL_LAYOUT -->
   <!--
     Keep this final image rule inline so a stale CDN/browser stylesheet can never
@@ -61,6 +61,18 @@
     .product-media {
       position: relative !important;
       overflow: hidden !important;
+      background: #fff !important;
+    }
+
+    .product-media:has(.product-image-placeholder)::before {
+      background: transparent !important;
+    }
+
+    .product-price-stack .price,
+    .product-price-stack .regular-price,
+    .product-discount-badge {
+      visibility: visible !important;
+      opacity: 1 !important;
     }
 
     .product-media > img.product-official-image {
@@ -95,9 +107,9 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div><div class="success-modal" id="successModal" aria-hidden="true"><div><button id="closeSuccess" aria-label="Đóng">×</button><span class="success-star">✦</span><p class="eyebrow">ĐƠN HÀNG ĐÃ ĐƯỢC GHI NHẬN</p><h2>Cảm ơn bạn!</h2><p id="successText"></p><button class="button primary" id="doneOrder">Hoàn tất</button></div></div>
   <script src="scroll-actions.js"></script>
   <script src="storefront-state.js?v=20261005-stable-ui"></script>
-  <script src="data.js?v=20261103-permanent-delete"></script>
+  <script src="data.js?v=20261103-commerce-lock"></script>
   <script src="product-rich-text.js"></script>
   <script src="promotion-rich-text.js?v=20260811"></script>
-  <script src="app.js?v=20261103-permanent-delete"></script>
+  <script src="app.js?v=20261103-commerce-lock"></script>
 </body>
 </html>

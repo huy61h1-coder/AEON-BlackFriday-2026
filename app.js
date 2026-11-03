@@ -49,17 +49,19 @@ function normaliseVariants(value, fallbackPrice) {
 }
 
 function normaliseProduct(product) {
-  const price = Math.max(0, Number(product.price) || 0);
-  const originalPrice = Math.max(0, Number(product.originalPrice) || 0);
+  const price = Math.max(0, Number(product.price) || Number(product.salePrice) || Number(product.promotionalPrice) || Number(product.giaKhuyenMai) || 0);
+  const variants = normaliseVariants(product.variants, price);
+  const effectivePrice = price || Math.min(...variants.map(variant => variant.price).filter(value => value > 0), Infinity);
+  const originalPrice = Math.max(0, Number(product.originalPrice) || Number(product.regularPrice) || Number(product.listPrice) || Number(product.oldPrice) || Number(product.giaThuong) || 0);
   return {
     id: String(product.id || ''),
     name: String(product.name || 'Sản phẩm đang cập nhật'),
     price,
-    originalPrice: originalPrice > price ? originalPrice : 0,
+    originalPrice: originalPrice > effectivePrice ? originalPrice : 0,
     description: String(product.description || ''),
     details: String(product.details || product.description || ''),
     label: String(product.label || ''),
-    brand: normaliseAeonBrand(product.brand),
+    brand: normaliseAeonBrand(product.brand) || inferAeonBrandFromProductName(product.name),
     image: normaliseImageUrl(product.image),
     bg: safeColor(product.bg),
     box: safeColor(product.box, '#8f1834'),
@@ -67,7 +69,7 @@ function normaliseProduct(product) {
     ingredients: String(product.ingredients || ''),
     sku: String(product.sku || ''),
     variantLabel: String(product.variantLabel || '').trim().slice(0, 100),
-    variants: normaliseVariants(product.variants, price)
+    variants
   };
 }
 
@@ -93,7 +95,10 @@ function priceLabel(product) {
 
 function discountPercent(product) {
   const originalPrice = Number(product.originalPrice) || 0;
-  const sellingPrice = Number(product.price) || 0;
+  const variantPrices = Array.isArray(product.variants)
+    ? product.variants.map(variant => Number(variant.price) || 0).filter(price => price > 0)
+    : [];
+  const sellingPrice = Number(product.price) || (variantPrices.length ? Math.min(...variantPrices) : 0);
   return originalPrice > sellingPrice && sellingPrice > 0
     ? Math.round((1 - sellingPrice / originalPrice) * 100)
     : 0;
@@ -573,7 +578,7 @@ function productFromStorefrontForm(form, existing = {}, variants = []) {
     price: Math.round(price),
     originalPrice: originalPrice > price ? Math.round(originalPrice) : 0,
     label: cleanStorefrontProductText(data.label, 100),
-    brand: normaliseAeonBrand(data.brand),
+    brand: normaliseAeonBrand(data.brand) || inferAeonBrandFromProductName(name),
     description,
     details: AEONRichText.clean(data.details, 3000),
     weight: cleanStorefrontProductText(data.weight, 160),

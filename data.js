@@ -73,6 +73,34 @@ function normaliseAeonBrand(value) {
   return matched?.name || String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, 120);
 }
 
+const AEON_NON_BRAND_PRODUCT_WORDS = new Set([
+  'hop','qua','bo','combo','set','tui','chai','goi','san','pham','gia','dinh','cao','cap',
+  'sua','tam','dau','goi','xa','nuoc','hoa','kem','duong','da','mat','banh','keo',
+  'lo','vi','song','noi','com','dien','may','say','toc','chao','giay','thuc','pham',
+  'trang','den','do','xanh','vang','hong','lon','nho','ml','kg','g'
+]);
+
+function inferAeonBrandFromProductName(value) {
+  const name = String(value || '').replace(/\s+/g, ' ').trim();
+  if (!name) return '';
+
+  const foldedName = ` ${name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, ' ')} `;
+  const known = (typeof aeonStore === 'object' && aeonStore?.brands ? aeonStore.brands() : [])
+    .flatMap(group => group.brands || [])
+    .map(brand => String(brand?.name || '').trim())
+    .filter(Boolean)
+    .sort((left, right) => right.length - left.length);
+  const matched = known.find(brand => foldedName.includes(` ${brand.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, ' ').trim()} `));
+  if (matched) return matched;
+
+  const tokens = name.match(/[\p{L}\p{N}&+.-]+/gu) || [];
+  const candidate = tokens.find(token => {
+    const key = aeonBrandKey(token);
+    return key.length >= 2 && !AEON_NON_BRAND_PRODUCT_WORDS.has(key) && !/^\d+(?:ml|g|kg)?$/i.test(key);
+  });
+  return candidate ? candidate.slice(0, 120) : '';
+}
+
 function aeonBrandOptions(selectedBrand = '') {
   const selected = normaliseAeonBrand(selectedBrand);
   return `<option value="">Chưa chọn thương hiệu</option>${aeonBrandGroups().map(group => `<optgroup label="${aeonBrandHtml(group.name)}">${group.brands.map(brand => `<option value="${aeonBrandHtml(brand.name)}"${brand.name === selected ? ' selected' : ''}>${aeonBrandHtml(brand.name)}</option>`).join('')}</optgroup>`).join('')}`;

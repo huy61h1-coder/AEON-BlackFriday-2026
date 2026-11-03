@@ -644,7 +644,7 @@ async function saveQuickProducts(rows) {
       id,
       name,
       price: variantPrices.length ? Math.min(...variantPrices) : Math.round(price),
-      brand: normaliseAeonBrand(row.brand),
+      brand: normaliseAeonBrand(row.brand) || inferAeonBrandFromProductName(name),
       label: cleanTextImport(row.label, 100),
       description,
       image: normaliseImageUrl(existing?.image || ''),
@@ -932,7 +932,7 @@ function renderImportPreview(target, analysis, products) {
         <header><label class="import-check"><input type="checkbox" data-import-select ${selectByDefault ? 'checked' : ''} ${canSelect ? '' : 'disabled'}><span>Chọn sản phẩm ${index + 1}</span></label><span class="import-confidence">Độ tin cậy ${Math.max(0, Math.min(100, Number(candidate.confidence) || 0))}%</span></header>
         <div class="import-fields">
           <label>Tên sản phẩm<input data-import-name value="${escapeHtml(candidate.name || '')}" required></label>
-          <label>Thương hiệu<input data-import-brand value="${escapeHtml(normaliseAeonBrand(candidate.brand) || normaliseAeonBrand(existing?.brand))}" placeholder="Tự động lấy từ file sản phẩm"></label>
+          <label>Thương hiệu<input data-import-brand value="${escapeHtml(normaliseAeonBrand(candidate.brand) || normaliseAeonBrand(existing?.brand) || inferAeonBrandFromProductName(candidate.name))}" placeholder="Tự động lấy từ file hoặc tên sản phẩm"></label>
           <label>Giá bán (VNĐ)<input data-import-price type="number" min="0" inputmode="numeric" value="${Number(candidate.price) || ''}" required></label>
           <label>Giá thường (VNĐ)<input data-import-original-price type="number" min="0" inputmode="numeric" value="${Number(candidate.originalPrice) || ''}" placeholder="Để trống nếu không giảm giá"></label>
           <label>Mã sản phẩm<input data-import-sku value="${escapeHtml(candidate.sku || '')}"></label>
@@ -1148,7 +1148,7 @@ function openProductEditor(id, options = {}) {
     data.originalPrice = Number(data.originalPrice) > data.price ? Math.round(Number(data.originalPrice)) : 0;
     if (!Number.isFinite(data.price) || data.price < 0) throw new Error('Giá bán không hợp lệ.');
     data.image = normaliseImageUrl(data.image);
-    data.brand = normaliseAeonBrand(data.brand);
+    data.brand = normaliseAeonBrand(data.brand) || inferAeonBrandFromProductName(data.name);
     let all = [...aeonStore.products()];
     try {
       const state = await remoteState();
