@@ -72,12 +72,15 @@ footer { background:#050505!important; border-top:1px solid var(--bf-line); } fo
 .price { color:var(--bf-gold)!important; }.regular-price { color:rgba(255,250,244,.62)!important; }
 /* The product detail dialog is a light panel over the dark campaign.  Reset
    inherited campaign text so every product field remains readable. */
-.product-modal-card,.product-modal-card .detail-copy { background:#fff!important; color:var(--ink)!important; }
-.product-modal-card .detail-copy h2,.product-modal-card .detail-copy dd,.product-modal-card .detail-description,.product-modal-card .detail-meta { color:var(--ink)!important; }
-.product-modal-card .detail-copy dt { color:var(--muted)!important; }
-.product-modal-card .detail-variant-picker { background:#fcfaf6!important; color:var(--ink)!important; }
-.product-modal-card .detail-variant-head>span { color:var(--muted)!important; }
+.product-modal-card,.product-modal-card .detail-copy { background:#fff!important; color:#242224!important; }
+/* Use literal high-contrast values here: the administrator can customize
+   --ink, so a variable can otherwise become white inside this light dialog. */
+.product-modal-card #productDetailBody .detail-copy h2,.product-modal-card #productDetailBody .detail-copy dd,.product-modal-card #productDetailBody .detail-description,.product-modal-card #productDetailBody .detail-meta { color:#242224!important; }
+.product-modal-card #productDetailBody .detail-copy dt { color:#625c58!important; }
+.product-modal-card .detail-variant-picker { background:#fcfaf6!important; color:#242224!important; }
+.product-modal-card .detail-variant-head>span { color:#625c58!important; }
 .product-modal-card .detail-variant-head b { color:var(--wine)!important; }
-.product-modal-card .detail-variant-options button,.product-modal-card .quantity-button { background:#fff!important; color:var(--ink)!important; }
-.product-modal-card .modal-close { color:var(--ink)!important; }
+.product-modal-card .detail-variant-options button,.product-modal-card .quantity-button { background:#fff!important; color:#242224!important; }
+.product-modal-card .detail-actions .button { color:#fff!important; }
+.product-modal-card .modal-close { color:#242224!important; }
 @media(max-width:760px) { .black-friday-bar { gap:12px; font-size:8px; }.black-friday-bar strong{font-size:9px;}.hero{min-height:auto!important;}.hero::before{right:4vw;top:12%;font-size:70px;}.site-header nav{background:#101010!important;border-color:var(--bf-line)!important;} }
