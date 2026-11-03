@@ -1,34 +1,10 @@
 const AEON_DEFAULT_PRODUCTS = [];
-const AEON_BRAND_GROUPS = [
-  {
-    id: 'imported',
-    name: 'Thương hiệu nhập khẩu',
-    brands: [
-      {name: 'Mei-Xin (Hong Kong)', aliases: ['Mei-Xin']},
-      {name: 'Tai Thong (Malaysia)', aliases: ['Tai Thong']}
-    ]
-  },
-  {
-    id: 'hotel-restaurant',
-    name: 'Khách sạn & Nhà hàng',
-    brands: [
-      {name: 'Sheraton'}, {name: 'Maison'}, {name: 'Davidoff'}, {name: 'Hoàng Yến Group'},
-      {name: 'Nikko'}, {name: 'Sofitel'}, {name: 'Hilton'}
-    ]
-  },
-  {
-    id: 'local',
-    name: 'Thương hiệu nội địa',
-    brands: [
-      {name: 'Kinh Đô'}, {name: 'Hữu Nghị'}, {name: 'Thành Long'}, {name: 'Bảo Ngọc'},
-      {name: 'Savoure'}, {name: 'Hy Lâm Môn'}, {name: 'Momi'}, {name: 'Đại Phát'},
-      {name: 'Phúc Long'}, {name: 'Sweethome'}, {name: 'Bibica'}, {name: 'Bakes'}
-    ]
-  }
-];
+// Brand filters are generated from the products themselves.  Do not add a
+// fixed catalogue here: imported/new product brands appear automatically.
+const AEON_BRAND_GROUPS = [];
 
 function cleanAeonBrandGroups(value) {
-  const source = Array.isArray(value) && value.length ? value : AEON_BRAND_GROUPS;
+  const source = Array.isArray(value) ? value : AEON_BRAND_GROUPS;
   const groupIds = new Set();
   const brandKeys = new Set();
   return source.slice(0, 20).map((group, groupIndex) => {
@@ -321,7 +297,7 @@ const aeonStore = {
     const groups = configured.map(group => ({...group, brands: group.brands.map(brand => ({...brand}))}));
     let other = groups.find(group => group.id === 'other');
     if (!other) {
-      other = {id: 'other', name: 'Thương hiệu khác', brands: []};
+      other = {id: 'other', name: 'Thương hiệu từ sản phẩm', brands: []};
       groups.push(other);
     }
     used.forEach(name => {
@@ -330,6 +306,7 @@ const aeonStore = {
       known.add(key);
       other.brands.push({name});
     });
+    other.brands.sort((left, right) => left.name.localeCompare(right.name, 'vi'));
     return groups;
   },
 

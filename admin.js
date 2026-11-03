@@ -1360,55 +1360,17 @@ function brandGroupsFromEditor(form) {
 }
 
 function brandSettingsPanel(panel) {
-  const groups = aeonStore.brands();
+  const brands = [...new Set(aeonStore.products()
+    .map(product => normaliseAeonBrand(product?.brand))
+    .filter(Boolean))]
+    .sort((left, right) => left.localeCompare(right, 'vi'));
   panel.insertAdjacentHTML('beforeend', `
     <section class="admin-card editor brand-settings">
       <p class="eyebrow">DANH MỤC THƯƠNG HIỆU</p>
-      <h2>Thêm và quản lý thương hiệu</h2>
-      <p>Các thương hiệu đã lưu sẽ xuất hiện trong bộ lọc trang chủ, trình sửa sản phẩm và file nhập Excel.</p>
-      <form id="brandSettingsForm">
-        <div class="brand-settings-list" data-brand-groups>${groups.map(brandGroupEditorMarkup).join('')}</div>
-        <div class="editor-actions"><button class="secondary-button" type="button" id="addBrandGroup">+ Thêm nhóm</button><button class="button primary" type="submit">Lưu thương hiệu</button></div>
-      </form>
+      <h2>Thương hiệu tự động</h2>
+      <p>Danh sách này được tạo trực tiếp từ trường <b>Thương hiệu</b> của sản phẩm. Khi thêm, sửa hoặc import sản phẩm, bộ lọc trang chủ sẽ tự cập nhật.</p>
+      ${brands.length ? `<div class="brand-auto-list">${brands.map(brand => `<span>${escapeHtml(brand)}</span>`).join('')}</div>` : '<p class="empty-admin">Chưa có thương hiệu. Hãy thêm thương hiệu vào sản phẩm hoặc file Excel.</p>'}
     </section>`);
-
-  const form = $('#brandSettingsForm');
-  const list = form.querySelector('[data-brand-groups]');
-  const bindGroup = group => {
-    group.querySelector('[data-remove-brand-group]').onclick = () => {
-      if (list.querySelectorAll('[data-brand-group]').length <= 1) {
-        toastAdmin('Cần giữ lại ít nhất một nhóm thương hiệu.');
-        return;
-      }
-      group.remove();
-    };
-  };
-  list.querySelectorAll('[data-brand-group]').forEach(bindGroup);
-  $('#addBrandGroup').onclick = () => {
-    if (list.querySelectorAll('[data-brand-group]').length >= 20) {
-      toastAdmin('Chỉ được tạo tối đa 20 nhóm thương hiệu.');
-      return;
-    }
-    list.insertAdjacentHTML('beforeend', brandGroupEditorMarkup({
-      id: `brand-group-${Date.now()}`,
-      name: 'Nhóm thương hiệu mới',
-      brands: []
-    }));
-    const group = list.lastElementChild;
-    bindGroup(group);
-    group.querySelector('[data-brand-group-name]').focus();
-  };
-  form.onsubmit = async event => {
-    event.preventDefault();
-    try {
-      const nextGroups = brandGroupsFromEditor(form);
-      await saveShared('aeon-brands', nextGroups);
-      toastAdmin('Đã lưu danh sách thương hiệu và đồng bộ website.');
-      render();
-    } catch (error) {
-      toastAdmin(error.message);
-    }
-  };
 }
 
 function assetPanel(panel) {
