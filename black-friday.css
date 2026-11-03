@@ -63,6 +63,9 @@ footer { background:#050505!important; border-top:1px solid var(--bf-line); } fo
    on the Black Friday dark card surface. */
 .product { background:var(--bf-panel)!important; border-color:var(--bf-line)!important; }
 .product-media { background:#fff!important; }
+.product-media:has(.product-image-placeholder),.detail-art:has(.detail-image-placeholder) { background:#fff!important; }
+.product-media:has(.product-image-placeholder)::before,.detail-art:has(.detail-image-placeholder)::before { background:transparent!important; }
+.product-image-placeholder,.detail-image-placeholder { background:#fff!important; color:#625c58!important; border-color:#d8d0c5!important; }
 .product-info { background:var(--bf-panel)!important; }
 .product-info h3 { color:var(--bf-white)!important; }.product-brand { color:var(--bf-red)!important; }
 .product-info p { color:rgba(255,250,244,.68)!important; }.product-bottom { border-color:var(--bf-line)!important; }
