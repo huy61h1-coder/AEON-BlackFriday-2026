@@ -59,10 +59,12 @@ footer { background:#050505!important; border-top:1px solid var(--bf-line); } fo
 .checkout input::placeholder,.checkout textarea::placeholder { color:rgba(255,250,244,.56)!important; }
 .catalog-empty { background:var(--bf-panel-2)!important; border-color:var(--bf-line)!important; color:var(--bf-white)!important; }
 .catalog-empty h3 { color:var(--bf-white)!important; }.catalog-empty p { color:rgba(255,250,244,.76)!important; }
-/* Product cards remain light to make catalogue images and product details easy
-   to scan, while the surrounding campaign layout stays Black Friday dark. */
-.product,.product-info { background:#fff!important; border-color:#e8dfd3!important; }
-.product-info h3 { color:#242224!important; }.product-brand { color:var(--bf-red)!important; }
-.product-info p { color:#625c58!important; }.product-bottom { border-color:#e5ddd1!important; }
-.price { color:var(--bf-red)!important; }.regular-price { color:#746d68!important; }
+/* Keep product imagery on a clean white canvas; product name and price stay
+   on the Black Friday dark card surface. */
+.product { background:var(--bf-panel)!important; border-color:var(--bf-line)!important; }
+.product-media { background:#fff!important; }
+.product-info { background:var(--bf-panel)!important; }
+.product-info h3 { color:var(--bf-white)!important; }.product-brand { color:var(--bf-red)!important; }
+.product-info p { color:rgba(255,250,244,.68)!important; }.product-bottom { border-color:var(--bf-line)!important; }
+.price { color:var(--bf-gold)!important; }.regular-price { color:rgba(255,250,244,.62)!important; }
 @media(max-width:760px) { .black-friday-bar { gap:12px; font-size:8px; }.black-friday-bar strong{font-size:9px;}.hero{min-height:auto!important;}.hero::before{right:4vw;top:12%;font-size:70px;}.site-header nav{background:#101010!important;border-color:var(--bf-line)!important;} }
