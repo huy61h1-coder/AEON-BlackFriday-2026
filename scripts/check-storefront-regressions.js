@@ -11,6 +11,8 @@ const checks = [
   ['storefront-product-ux.css', '.regular-price', 'Thiếu định dạng giá thường.'],
   ['storefront-product-ux.css', '.product-discount-badge', 'Thiếu định dạng phần trăm giảm giá.'],
   ['data.js', 'inferAeonBrandFromProductName', 'Thiếu chức năng tự nhận diện thương hiệu.'],
+  ['data.js', 'hydrateProductCommerceFields', 'Thiếu lớp khôi phục giá và thương hiệu từ danh mục cũ.'],
+  ['data.js', "'giaKhuyenMai', 'giaKM'", 'Thiếu nhận diện các cột giá khuyến mãi khi nhập dữ liệu.'],
   ['product-import.js', 'nhan hieu', 'File nhập sản phẩm phải nhận diện cột Nhãn hiệu.'],
   ['server.js', 'aeon-product-tombstones', 'Thiếu khóa chống khôi phục sản phẩm đã xóa.']
 ];

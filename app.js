@@ -40,7 +40,7 @@ function normaliseVariants(value, fallbackPrice) {
   return value.map((variant, index) => {
     const name = String(variant?.name || '').trim();
     if (!name) return null;
-    const rawPrice = Number(variant.price);
+    const rawPrice = aeonCommercePrice(variant.price);
     const price = Number.isFinite(rawPrice) && rawPrice >= 0 ? Math.round(rawPrice) : fallbackPrice;
     const rawId = String(variant.id || variant.sku || name || index + 1).trim();
     const id = rawId.replace(/\s+/g, '-').slice(0, 100) || `variant-${index + 1}`;
@@ -49,10 +49,10 @@ function normaliseVariants(value, fallbackPrice) {
 }
 
 function normaliseProduct(product) {
-  const price = Math.max(0, Number(product.price) || Number(product.salePrice) || Number(product.promotionalPrice) || Number(product.giaKhuyenMai) || 0);
+  const price = productCommerceValue(product, ['price', 'salePrice', 'promotionalPrice', 'promotionPrice', 'discountPrice', 'giaKhuyenMai', 'giaKM']);
   const variants = normaliseVariants(product.variants, price);
   const effectivePrice = price || Math.min(...variants.map(variant => variant.price).filter(value => value > 0), Infinity);
-  const originalPrice = Math.max(0, Number(product.originalPrice) || Number(product.regularPrice) || Number(product.listPrice) || Number(product.oldPrice) || Number(product.giaThuong) || 0);
+  const originalPrice = productCommerceValue(product, ['originalPrice', 'regularPrice', 'listPrice', 'oldPrice', 'retailPrice', 'normalPrice', 'giaThuong']);
   return {
     id: String(product.id || ''),
     name: String(product.name || 'Sản phẩm đang cập nhật'),
@@ -94,11 +94,11 @@ function priceLabel(product) {
 }
 
 function discountPercent(product) {
-  const originalPrice = Number(product.originalPrice) || 0;
+  const originalPrice = aeonCommercePrice(product.originalPrice);
   const variantPrices = Array.isArray(product.variants)
-    ? product.variants.map(variant => Number(variant.price) || 0).filter(price => price > 0)
+    ? product.variants.map(variant => aeonCommercePrice(variant.price)).filter(price => price > 0)
     : [];
-  const sellingPrice = Number(product.price) || (variantPrices.length ? Math.min(...variantPrices) : 0);
+  const sellingPrice = aeonCommercePrice(product.price) || (variantPrices.length ? Math.min(...variantPrices) : 0);
   return originalPrice > sellingPrice && sellingPrice > 0
     ? Math.round((1 - sellingPrice / originalPrice) * 100)
     : 0;

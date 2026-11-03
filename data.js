@@ -429,6 +429,62 @@ if (Array.isArray(savedProducts) && savedProducts.length === sampleProductIds.le
   localStorage.removeItem('aeon-products');
 }
 
+// Commerce fields have existed under several spreadsheet/header names over time.
+// Normalize only missing values so importing a new file or updating the theme can
+// never remove a sale price, regular price, discount calculation, or brand.
+function aeonCommercePrice(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) return Math.max(0, Math.round(value));
+  const digits = String(value ?? '').replace(/[^0-9]/g, '');
+  return digits ? Math.max(0, Number(digits)) : 0;
+}
+
+function productCommerceValue(product, keys) {
+  for (const key of keys) {
+    const amount = aeonCommercePrice(product?.[key]);
+    if (amount > 0) return amount;
+  }
+  return 0;
+}
+
+function hydrateProductCommerceFields() {
+  const stored = aeonStore.get('aeon-products', AEON_DEFAULT_PRODUCTS);
+  if (!Array.isArray(stored) || !stored.length) return false;
+
+  let changed = false;
+  const products = stored.map(product => {
+    if (!product || typeof product !== 'object') return product;
+    const next = {...product};
+    const salePrice = productCommerceValue(product, ['price', 'salePrice', 'promotionalPrice', 'promotionPrice', 'discountPrice', 'giaKhuyenMai', 'giaKM']);
+    const regularPrice = productCommerceValue(product, ['originalPrice', 'regularPrice', 'listPrice', 'oldPrice', 'retailPrice', 'normalPrice', 'giaThuong']);
+    const inferredBrand = normaliseAeonBrand(product.brand) || inferAeonBrandFromProductName(product.name);
+
+    if (salePrice > 0 && aeonCommercePrice(product.price) !== salePrice) {
+      next.price = salePrice;
+      changed = true;
+    }
+    if (regularPrice > salePrice && aeonCommercePrice(product.originalPrice) !== regularPrice) {
+      next.originalPrice = regularPrice;
+      changed = true;
+    }
+    if (!String(product.brand || '').trim() && inferredBrand) {
+      next.brand = inferredBrand;
+      changed = true;
+    }
+    return next;
+  });
+
+  if (changed) {
+    localStorage.setItem('aeon-products', JSON.stringify(products));
+    aeonStore.lastWriteAt['aeon-products'] = Date.now();
+    aeonStore.push('aeon-products', products);
+  }
+  return changed;
+}
+
+// Run before the storefront renders and once again after a remote catalogue is
+// received. This keeps legacy imported rows compatible without touching other data.
+hydrateProductCommerceFields();
+
 // Let the storefront wait for the server state once on a fresh page load so
 // an older browser-local banner never replaces the current shared banner.
 // A server-rendered or deployed snapshot is authoritative for the first paint.
@@ -436,3 +492,7 @@ if (Array.isArray(savedProducts) && savedProducts.length === sampleProductIds.le
 window.aeonStoreReady = Object.keys(initialStorefrontState).length
   ? Promise.resolve(true)
   : aeonStore.pull();
+window.aeonStoreReady = window.aeonStoreReady.then(result => {
+  hydrateProductCommerceFields();
+  return result;
+});
