@@ -278,9 +278,13 @@ async function readCloudState() {
   return Object.keys(state).length ? state : null;
 }
 
-async function writeCloudState(state) {
+async function writeCloudState(state, changedKeys = cloudStateKeys) {
   if (!supabaseUrl || !supabaseAnonKey) return;
+  const requestedKeys = Array.isArray(changedKeys) ? changedKeys : cloudStateKeys;
   const rows = cloudStateKeys
+    // Persist only the key requested by the caller. Writing a UI/layout change
+    // must never re-save an older in-memory product catalogue or its images.
+    .filter(key => requestedKeys.includes(key))
     .filter(key => Object.hasOwn(state || {}, key))
     .map(key => ({key, value: state[key], updated_at: new Date().toISOString()}));
   if (!rows.length) return;
@@ -300,9 +304,9 @@ const stateReady = readCloudState()
   })
   .catch(error => console.warn(`AEON cloud state unavailable: ${error.message}`));
 
-async function writeState(state) {
+async function writeState(state, changedKeys = []) {
   writeLocalState(state);
-  await writeCloudState(state);
+  await writeCloudState(state, changedKeys);
 }
 
 function publicStorefrontState(state) {
@@ -1551,7 +1555,7 @@ http.createServer(async (request, response) => {
         }
       }
       state[key] = value;
-      await writeState(state);
+      await writeState(state, [key]);
       return json(response, 200, {ok:true});
     } catch (error) { return json(response, 400, {error:error.message || 'Không thể lưu dữ liệu.'}); }
   }

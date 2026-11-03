@@ -1,7 +1,7 @@
-// Stable storefront state for static GitHub/Netlify deployments.
-// An explicit empty catalogue clears stale product data retained by browsers.
+// Stable storefront settings for static GitHub/Netlify deployments.
+// Product data deliberately stays in the API state so a visual update can
+// never replace the current product catalogue or product images.
 window.AEON_DEPLOYED_STOREFRONT_STATE = {
-  "aeon-products": [],
   "aeon-ui": {
     "eyebrow": "MÙA TRĂNG 2026",
     "title": "Women Day",
