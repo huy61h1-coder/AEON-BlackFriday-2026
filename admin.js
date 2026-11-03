@@ -937,7 +937,7 @@ function renderImportPreview(target, analysis, products) {
           <label>Giá thường (VNĐ)<input data-import-original-price type="number" min="0" inputmode="numeric" value="${Number(candidate.originalPrice) || ''}" placeholder="Để trống nếu không giảm giá"></label>
           <label>Mã sản phẩm<input data-import-sku value="${escapeHtml(candidate.sku || '')}"></label>
           <label class="wide">Mô tả ngắn<textarea data-import-description rows="2">${escapeHtml(candidate.description || '')}</textarea></label>
-          <label>Thành phần nổi bật<input data-import-ingredients value="${escapeHtml(candidate.ingredients || '')}" placeholder="Ví dụ: Hạt sen · trứng muối"></label>
+          <label>Tính năng nổi bật<input data-import-ingredients value="${escapeHtml(candidate.ingredients || '')}" placeholder="Ví dụ: Hạt sen · trứng muối"></label>
           <label>Tên nhóm phân loại<input data-import-variant-label value="${escapeHtml(candidate.variantLabel || existing?.variantLabel || '')}" placeholder="Ví dụ: Màu sắc"></label>
           <fieldset class="product-variant-editor import-variant-editor wide"><legend>Giá trị phân loại</legend><p>Mỗi màu sắc, kích thước hoặc hương vị là một dòng riêng.</p><div class="product-variant-rows" data-import-variant-rows>${validAdminProductVariants(candidate.variants).map(productVariantRowMarkup).join('')}</div><button class="secondary-button" type="button" data-import-add-variant>+ Thêm phân loại</button></fieldset>
           <div class="richtext-field wide"><span class="richtext-label">Thông tin chi tiết</span>${AEONRichText.editorMarkup({name: 'details', value: candidate.details || '', rows: 8, placeholder: 'Kiểm tra lại nội dung OCR trước khi lưu'})}</div>
@@ -1185,8 +1185,8 @@ function openProductEditor(id, options = {}) {
           <label>Giá thường (VNĐ)<input name="originalPrice" type="number" min="0" inputmode="numeric" value="${existing.originalPrice ?? ''}" placeholder="Ví dụ: 900000"><small>Để trống nếu không giảm giá.</small></label>
           <label>Mô tả ngắn<textarea name="description" required rows="2" placeholder="Tóm tắt hiển thị trên thẻ sản phẩm">${escapeHtml(existing.description)}</textarea></label>
           <label>Nhãn hiển thị<input name="label" value="${escapeHtml(existing.label)}"></label>
-          <label>Quy cách / khối lượng<input name="weight" value="${escapeHtml(existing.weight || '')}" placeholder="Ví dụ: 4 bánh · 720g"></label>
-          <label>Thành phần nổi bật<input name="ingredients" value="${escapeHtml(existing.ingredients || '')}" placeholder="Ví dụ: Hạt sen, trứng muối"></label>
+          <label>Kích thước<input name="weight" value="${escapeHtml(existing.weight || '')}" placeholder="Ví dụ: 4 bánh · 720g"></label>
+          <label>Tính năng nổi bật<input name="ingredients" value="${escapeHtml(existing.ingredients || '')}" placeholder="Ví dụ: Hạt sen, trứng muối"></label>
           <label>Mã sản phẩm<input name="sku" value="${escapeHtml(existing.sku || '')}" placeholder="Ví dụ: AM-2026-01"></label>
           <label class="image-path">Tên nhóm phân loại<input name="variantLabel" value="${escapeHtml(existing.variantLabel || '')}" placeholder="Ví dụ: Màu sắc, Kích thước, Hương vị"><small>Được hiển thị khi sản phẩm có nhiều lựa chọn.</small></label>
           <fieldset class="product-variant-editor image-path"><legend>Phân loại sản phẩm</legend><p>Mỗi màu sắc, kích thước hoặc hương vị có thể có giá và mã SKU riêng.</p><div class="product-variant-rows" data-variant-rows>${editorVariants.map(productVariantRowMarkup).join('')}</div><button class="secondary-button" type="button" data-add-variant>+ Thêm phân loại</button></fieldset>
