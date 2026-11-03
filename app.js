@@ -1042,14 +1042,20 @@ function renderProducts() {
 }
 
 let productPriceFitFrame = 0;
+let productPriceFitFollowUpFrame = 0;
 
 function fitProductPrices() {
   productPriceFitFrame = 0;
   grid?.querySelectorAll('.product-bottom .price').forEach(price => {
     price.style.removeProperty('font-size');
     const defaultSize = Number.parseFloat(getComputedStyle(price).fontSize);
-    const minSize = Math.min(defaultSize, 9);
-    if (!Number.isFinite(defaultSize) || price.scrollWidth <= price.clientWidth) return;
+    // A card can change width after images, fonts, or its column layout finish
+    // rendering.  Fit against the actual price column, never the whole row.
+    const availableWidth = price.parentElement?.clientWidth || price.clientWidth;
+    if (!Number.isFinite(defaultSize) || availableWidth <= 0) return;
+    price.style.maxWidth = `${Math.floor(availableWidth)}px`;
+    const minSize = Math.min(defaultSize, 7);
+    if (price.scrollWidth <= price.clientWidth) return;
 
     let low = minSize;
     let high = defaultSize;
@@ -1070,10 +1076,26 @@ function fitProductPrices() {
 
 function scheduleProductPriceFit() {
   cancelAnimationFrame(productPriceFitFrame);
-  productPriceFitFrame = requestAnimationFrame(fitProductPrices);
+  cancelAnimationFrame(productPriceFitFollowUpFrame);
+  productPriceFitFrame = requestAnimationFrame(() => {
+    fitProductPrices();
+    // Stylesheets are appended dynamically for the storefront.  Measure again
+    // on the next paint so a late-loaded theme cannot restore a clipped price.
+    productPriceFitFollowUpFrame = requestAnimationFrame(fitProductPrices);
+  });
 }
 
 window.addEventListener('resize', scheduleProductPriceFit);
+window.addEventListener('load', scheduleProductPriceFit, {once: true});
+document.fonts?.ready?.then(scheduleProductPriceFit);
+
+document.querySelectorAll('link[rel="stylesheet"]').forEach(stylesheet => {
+  stylesheet.addEventListener('load', scheduleProductPriceFit);
+});
+
+if (typeof ResizeObserver !== 'undefined' && grid) {
+  new ResizeObserver(scheduleProductPriceFit).observe(grid);
+}
 
 function saveCart() {
   localStorage.setItem('aeon-mooncake-cart', JSON.stringify(cart));

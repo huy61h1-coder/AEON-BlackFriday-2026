@@ -140,6 +140,9 @@
 }
 
 .product-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   min-height: 47px;
   gap: 10px;
   border-top: 1px solid rgba(222, 214, 201, .76);
@@ -147,12 +150,14 @@
   min-width: 0;
 }
 
-.product-bottom-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 10px; margin-left: auto; min-width: 0; }
+.product-bottom-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 10px; margin-left: 0; min-width: 0; justify-self:end; }
 
-.product-price-stack { display:flex; flex:1 1 0; min-width:0; flex-direction:column; flex-wrap:nowrap; align-items:flex-start; justify-content:center; gap:2px; }
-.price { display: block; min-width: 0; color: var(--red); font-size: 24px; line-height: 1.12; white-space: nowrap; }
+.product-price-stack { display:flex; width:100%; min-width:0; flex-direction:column; flex-wrap:nowrap; align-items:flex-start; justify-content:center; gap:2px; }
+/* The cart action has its own grid column.  Prices are reduced by app.js when
+   needed, so their final currency character is never painted underneath it. */
+.price { display: block; min-width: 0; max-width:100%; color: var(--red); font-size: 24px; line-height: 1.12; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .price.is-contact { color: var(--ink); font-size: 14px; }
-.regular-price { display:block; color:var(--muted); font-size:12px; line-height:1.15; text-decoration:line-through; text-decoration-thickness:1px; white-space:nowrap; }
+.regular-price { display:block; max-width:100%; color:var(--muted); font-size:12px; line-height:1.15; text-decoration:line-through; text-decoration-thickness:1px; white-space:nowrap; }
 .discount-percent { display:inline-flex; align-items:center; min-height:18px; padding:1px 5px; border-radius:2px; background:var(--red); color:#fff; font-size:9px; font-weight:800; line-height:1; white-space:nowrap; }
 .product-discount-badge { position:absolute; top:10px; right:10px; z-index:8; min-height:27px; padding:5px 8px; border-radius:0; box-shadow:0 4px 12px rgba(0,0,0,.18); font-size:11px; letter-spacing:.02em; }
 
