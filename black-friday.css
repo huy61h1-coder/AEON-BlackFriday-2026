@@ -47,4 +47,16 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 input,textarea { color:var(--bf-white)!important; border-color:var(--bf-line)!important; }.checkout label{color:var(--bf-white)!important;}
 footer { background:#050505!important; border-top:1px solid var(--bf-line); } footer p,footer a { color:rgba(255,250,244,.72)!important; }
 .hotline-widget,.zalo-chat-button { filter:saturate(1.08); }
+/* High-contrast text for dark Black Friday surfaces. Light panels retain their
+   original dark text, so form fields and download menus remain readable. */
+.brand-directory h3,.brand-directory h4,.brand-directory-toggle,.catalog-control-filters label,.catalog-result { color:var(--bf-white)!important; }
+.brand-directory-head p,.catalog-control-filters label span,.catalog-controls small { color:rgba(255,250,244,.76)!important; }
+.catalog-control-filters select option { background:#171717; color:var(--bf-white); }
+.cart-drawer h2,.cart-drawer h3,.cart-drawer .drawer-head button,.cart-drawer .cart-total,.cart-drawer .cart-line-total,.cart-drawer .quantity,.cart-drawer .remove { color:var(--bf-white)!important; }
+.cart-drawer .cart-item p,.cart-drawer .cart-total small,.cart-drawer .empty-cart,.cart-drawer .cart-promotion { color:rgba(255,250,244,.76)!important; }
+.cart-drawer .cart-promotion b,.cart-drawer .quantity button { color:var(--bf-gold)!important; }
+.checkout-copy .note,.checkout .form-error,.checkout label span { color:rgba(255,250,244,.76)!important; }
+.checkout input::placeholder,.checkout textarea::placeholder { color:rgba(255,250,244,.56)!important; }
+.catalog-empty { background:var(--bf-panel-2)!important; border-color:var(--bf-line)!important; color:var(--bf-white)!important; }
+.catalog-empty h3 { color:var(--bf-white)!important; }.catalog-empty p { color:rgba(255,250,244,.76)!important; }
 @media(max-width:760px) { .black-friday-bar { gap:12px; font-size:8px; }.black-friday-bar strong{font-size:9px;}.hero{min-height:auto!important;}.hero::before{right:4vw;top:12%;font-size:70px;}.site-header nav{background:#101010!important;border-color:var(--bf-line)!important;} }
