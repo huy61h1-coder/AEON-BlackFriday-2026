@@ -169,7 +169,7 @@ $('.drawer-head h2').textContent = 'Giỏ hàng';
 $('.hero .note')?.remove();
 $('#checkout .note').textContent = 'Chúng tôi sẽ liên hệ xác nhận đơn hàng, ưu đãi và thời gian giao phù hợp.';
 $('.cart-total small').textContent = 'Phí giao hàng và ưu đãi sẽ được xác nhận khi tư vấn.';
-$('footer p').textContent = '© 2026 AEON Mooncake.';
+$('footer p').textContent = '© 2026 AEON Black Friday.';
 
 document.body.insertAdjacentHTML('beforeend', '<button class="mobile-cart-cta" id="mobileCart" aria-label="Mở giỏ hàng"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 1.9-1.5L20 8H7.1"></path><circle cx="10" cy="20" r="1"></circle><circle cx="17" cy="20" r="1"></circle></svg><span>Giỏ hàng</span><b id="mobileCartCount">0</b><i>Xem giỏ →</i></button>');
 $('.site-header nav').insertAdjacentHTML('beforeend', '<a href="admin.html">Đăng nhập</a>');
