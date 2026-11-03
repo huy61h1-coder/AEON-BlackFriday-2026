@@ -655,7 +655,7 @@ function openStorefrontProductEditor(id) {
         <label>Tên sản phẩm<input name="name" required value="${escapeHtml(existing.name)}"></label>
         <label>Thương hiệu<input name="brand" value="${escapeHtml(normaliseAeonBrand(existing.brand))}" placeholder="Nhập tên thương hiệu"><small>Tự động đưa vào bộ lọc thương hiệu sau khi lưu.</small></label>
         ${existing.id ? '' : `<label>Vị trí trong danh sách<select name="insertPosition">${storefrontProductInsertPositionOptions(aeonStore.products())}</select><small>Sản phẩm sẽ được chèn đúng vị trí này khi lưu.</small></label>`}
-        <label>Giá bán (VNĐ)<small data-variant-price-hint></small><input name="price" type="number" min="0" inputmode="numeric" required value="${existing.price ?? ''}" placeholder="Ví dụ: 750000"${existing.variants?.length ? ' readonly' : ''}></label>
+        <label>Giá khuyến mãi (VNĐ)<small data-variant-price-hint></small><input name="price" type="number" min="0" inputmode="numeric" required value="${existing.price ?? ''}" placeholder="Ví dụ: 750000"${existing.variants?.length ? ' readonly' : ''}></label>
         <label>Giá thường (VNĐ)<input name="originalPrice" type="number" min="0" inputmode="numeric" value="${existing.originalPrice ?? ''}" placeholder="Ví dụ: 900000"><small>Để trống nếu không giảm giá.</small></label>
         <label>Nhãn hiển thị<input name="label" value="${escapeHtml(existing.label || '')}" placeholder="Ví dụ: Bán chạy"></label>
         <label>Kích thước<input name="weight" value="${escapeHtml(existing.weight || '')}" placeholder="Ví dụ: 4 bánh · 720g"></label>
@@ -775,7 +775,7 @@ function applyUi() {
     art.append(official);
   }
   const heroImage = normaliseImageUrl(ui.heroImage);
-  official.innerHTML = heroImage ? `<img src="${escapeHtml(heroImage)}" alt="Hình ảnh bánh Trung Thu AEON" data-image-fallback>` : '<span>Hình ảnh chính thức<br>đang cập nhật</span>';
+  official.innerHTML = heroImage ? `<img src="${escapeHtml(heroImage)}" alt="Hình ảnh sản phẩm AEON BlackFriday" data-image-fallback>` : '<span>Hình ảnh chính thức<br>đang cập nhật</span>';
   attachImageFallbacks(official);
 }
 

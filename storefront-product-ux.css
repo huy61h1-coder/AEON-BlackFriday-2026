@@ -149,10 +149,10 @@
 
 .product-bottom-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 10px; margin-left: auto; min-width: 0; }
 
-.product-price-stack { display:flex; flex:1 1 0; min-width:0; flex-wrap:wrap; align-items:baseline; gap:3px 8px; }
-.price { display: block; min-width: 0; color: var(--red); font-size: 20px; line-height: 1.2; white-space: nowrap; }
+.product-price-stack { display:flex; flex:1 1 0; min-width:0; flex-direction:column; flex-wrap:nowrap; align-items:flex-start; justify-content:center; gap:2px; }
+.price { display: block; min-width: 0; color: var(--red); font-size: 24px; line-height: 1.12; white-space: nowrap; }
 .price.is-contact { color: var(--ink); font-size: 14px; }
-.regular-price { color:var(--muted); font-size:11px; line-height:1.2; text-decoration:line-through; text-decoration-thickness:1px; white-space:nowrap; }
+.regular-price { display:block; color:var(--muted); font-size:12px; line-height:1.15; text-decoration:line-through; text-decoration-thickness:1px; white-space:nowrap; }
 .discount-percent { display:inline-flex; align-items:center; min-height:18px; padding:1px 5px; border-radius:2px; background:var(--red); color:#fff; font-size:9px; font-weight:800; line-height:1; white-space:nowrap; }
 .product-discount-badge { position:absolute; top:10px; right:10px; z-index:8; min-height:27px; padding:5px 8px; border-radius:0; box-shadow:0 4px 12px rgba(0,0,0,.18); font-size:11px; letter-spacing:.02em; }
 
@@ -272,7 +272,9 @@
   .product-meta { min-height: 15px; font-size: 9px; }
   .product-info > p:not(.product-meta) { min-height: 34px; margin: 5px 0 11px; font-size: 11px; line-height: 1.5; }
   .product-bottom { min-height: 45px; padding-top: 10px; }
-  .price { font-size: 17px; }
+  .product-price-stack { gap:1px; }
+  .price { font-size: 19px; }
+  .regular-price { font-size:10px; }
   .product-add,.product-contact { min-height: 42px; font-size: 10px; }
   .product-add { width: 42px; min-width: 42px; }
   .product-contact { padding: 0 10px; }
@@ -293,7 +295,7 @@
   .product-meta { min-height: auto; font-size: 10px; }
   .product-info > p:not(.product-meta) { min-height: auto; font-size: 12px; }
   .product-bottom { min-height: 42px; padding-top: 7px; }
-  .price { font-size: 20px; }
+  .price { font-size: 22px; }
   .product-add,.product-contact { min-height: 44px; font-size: 11px; }
   .product-add { width: 44px; min-width: 44px; }
   .product-contact { padding: 0 14px; }

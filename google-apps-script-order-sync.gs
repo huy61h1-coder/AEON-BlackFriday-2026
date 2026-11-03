@@ -21,7 +21,7 @@ const ORDER_HEADERS = [
 ];
 
 function doGet() {
-  return jsonOutput_({ok: true, service: 'AEON Mooncake order sync'});
+  return jsonOutput_({ok: true, service: 'AEON BlackFriday order sync'});
 }
 
 function doPost(e) {

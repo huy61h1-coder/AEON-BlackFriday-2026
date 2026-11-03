@@ -332,6 +332,7 @@ function headerField(value) {
   if (/(ma phan loai|ma bien the|variant sku|option sku)/.test(key)) return 'variantSku';
   if (/(gia phan loai|gia bien the|variant price|option price)/.test(key)) return 'variantPrice';
   if (/(gia thuong|gia niem yet|gia goc|regular price|original price|list price)/.test(key)) return 'originalPrice';
+  if (/(gia khuyen mai|gia uu dai|sale price|promotional price|discount price)/.test(key)) return 'price';
   if (/(gia tri phan loai|phan loai|bien the|lua chon|variant value|option value)/.test(key)) return 'variantName';
   if (/(chi tiet san pham|noi dung chi tiet|full details)/.test(key)) return 'details';
   if (/(ma san pham|ma sp|sku|product code|code)/.test(key)) return 'sku';

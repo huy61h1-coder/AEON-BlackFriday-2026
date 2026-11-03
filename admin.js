@@ -820,7 +820,7 @@ async function saveImportedProducts(drafts) {
       name,
       price: Math.round(price),
       originalPrice: originalPrice > price ? Math.round(originalPrice) : 0,
-      brand: normaliseAeonBrand(draft.brand) || normaliseAeonBrand(existing?.brand),
+      brand: normaliseAeonBrand(draft.brand) || normaliseAeonBrand(existing?.brand) || inferAeonBrandFromProductName(name),
       description,
       sku,
       label: cleanTextImport(draft.label, 100),
@@ -933,7 +933,7 @@ function renderImportPreview(target, analysis, products) {
         <div class="import-fields">
           <label>Tên sản phẩm<input data-import-name value="${escapeHtml(candidate.name || '')}" required></label>
           <label>Thương hiệu<input data-import-brand value="${escapeHtml(normaliseAeonBrand(candidate.brand) || normaliseAeonBrand(existing?.brand) || inferAeonBrandFromProductName(candidate.name))}" placeholder="Tự động lấy từ file hoặc tên sản phẩm"></label>
-          <label>Giá bán (VNĐ)<input data-import-price type="number" min="0" inputmode="numeric" value="${Number(candidate.price) || ''}" required></label>
+          <label>Giá khuyến mãi (VNĐ)<input data-import-price type="number" min="0" inputmode="numeric" value="${Number(candidate.price) || ''}" required></label>
           <label>Giá thường (VNĐ)<input data-import-original-price type="number" min="0" inputmode="numeric" value="${Number(candidate.originalPrice) || ''}" placeholder="Để trống nếu không giảm giá"></label>
           <label>Mã sản phẩm<input data-import-sku value="${escapeHtml(candidate.sku || '')}"></label>
           <label class="wide">Mô tả ngắn<textarea data-import-description rows="2">${escapeHtml(candidate.description || '')}</textarea></label>
@@ -1181,7 +1181,7 @@ function openProductEditor(id, options = {}) {
           <label>Tên sản phẩm<input name="name" required value="${escapeHtml(existing.name)}"></label>
           <label>Thương hiệu<input name="brand" value="${escapeHtml(normaliseAeonBrand(existing.brand))}" placeholder="Nhập tên thương hiệu"><small>Tự động đưa vào bộ lọc thương hiệu sau khi lưu.</small></label>
           ${id ? '' : `<label>Vị trí trong danh sách<select name="insertPosition">${productInsertPositionOptions(currentProducts)}</select><small>Sản phẩm sẽ được chèn đúng vị trí này khi lưu.</small></label>`}
-          <label>Giá bán (VNĐ)<small data-variant-price-hint></small><input name="price" type="number" min="0" inputmode="numeric" required value="${existing.price ?? ''}" placeholder="Ví dụ: 750000"${editorVariants.length ? ' readonly' : ''}></label>
+          <label>Giá khuyến mãi (VNĐ)<small data-variant-price-hint></small><input name="price" type="number" min="0" inputmode="numeric" required value="${existing.price ?? ''}" placeholder="Ví dụ: 750000"${editorVariants.length ? ' readonly' : ''}></label>
           <label>Giá thường (VNĐ)<input name="originalPrice" type="number" min="0" inputmode="numeric" value="${existing.originalPrice ?? ''}" placeholder="Ví dụ: 900000"><small>Để trống nếu không giảm giá.</small></label>
           <label>Mô tả ngắn<textarea name="description" required rows="2" placeholder="Tóm tắt hiển thị trên thẻ sản phẩm">${escapeHtml(existing.description)}</textarea></label>
           <label>Nhãn hiển thị<input name="label" value="${escapeHtml(existing.label)}"></label>

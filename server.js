@@ -393,7 +393,7 @@ function socialPreviewVersion(imagePath) {
 
 function currentHeroImage(state) {
   const configuredImage = String(state?.['aeon-ui']?.heroImage || '').trim();
-  return /^(?:https?:\/\/|\/)/i.test(configuredImage) ? configuredImage : '/assets/mooncake-hero.png';
+  return /^(?:https?:\/\/|\/)/i.test(configuredImage) ? configuredImage : 'https://res.cloudinary.com/rnrbw9za/image/upload/v1793679407/bf_yggx12.png';
 }
 
 function safeHeroPreviewVersion(value) {
@@ -533,7 +533,7 @@ function storefrontHtml(request) {
     .replace('<!-- PUBLIC_STORE_STATE -->', publicStoreStateMarkup(state))
     .replace('<!-- INITIAL_LAYOUT -->', initialLayoutStyle(state))
     .replace(/<title>[^<]*<\/title>/, `<title>${pageTitle}</title>`)
-    .replace('src="assets/mooncake-hero.png"', `src="${heroImage}"`);
+    .replace('src="https://res.cloudinary.com/rnrbw9za/image/upload/v1793679407/bf_yggx12.png"', `src="${heroImage}"`);
 }
 
 function spreadsheetText(value) {
@@ -700,7 +700,7 @@ async function orderPdfBuffer(state, requestedCode) {
       bufferPages: true,
       info: {
         Title: `Đơn hàng ${cleanPdfText(order.code, 80)}`,
-        Author: 'AEON Mooncake 2026',
+        Author: 'AEON BlackFriday 2026',
         Subject: 'Phiếu xác nhận đơn hàng'
       }
     });
@@ -733,7 +733,7 @@ async function orderPdfBuffer(state, requestedCode) {
       } else {
         font(true, 24, accent).text(cleanPdfText(ui.logoText || 'AEON', 30), margin, 31);
       }
-      font(false, 7.5, muted).text(cleanPdfText(ui.logoSubtitle || 'MOONCAKE 2026', 70).replace(/\n+/g, ' · '), margin, 71, {width:190});
+      font(false, 7.5, muted).text(cleanPdfText(ui.logoSubtitle || 'SIÊU SALE', 70).replace(/\n+/g, ' · '), margin, 71, {width:190});
       font(true, 15, ink).text(continuation ? 'CHI TIẾT ĐƠN HÀNG' : 'PHIẾU XÁC NHẬN ĐƠN HÀNG', 285, 31, {width:266, align:'right'});
       font(false, 8.5, muted).text(`Mã đơn: ${cleanPdfText(order.code, 80)}\nThời gian: ${cleanPdfText(order.createdAt || customer.createdAt || '', 100)}`, 285, 54, {width:266, align:'right', lineGap:3});
       doc.moveTo(margin, 91).lineTo(pageWidth - margin, 91).lineWidth(.7).strokeColor(line).stroke();
@@ -803,7 +803,7 @@ async function orderPdfBuffer(state, requestedCode) {
       const sku = cleanPdfText(item?.variantSku || item?.sku || item?.id || '', 100);
       const textX = margin + 79;
       font(true, 10.5, ink).text(cleanPdfText(item?.name || 'Sản phẩm', 220), textX, y + 12, {width:292, height:28, ellipsis:true});
-      font(false, 8.2, muted).text([variant, sku ? `Mã: ${sku}` : ''].filter(Boolean).join(' · ') || 'Sản phẩm AEON Mooncake', textX, y + 40, {width:292, height:15, ellipsis:true});
+      font(false, 8.2, muted).text([variant, sku ? `Mã: ${sku}` : ''].filter(Boolean).join(' · ') || 'Sản phẩm AEON BlackFriday', textX, y + 40, {width:292, height:15, ellipsis:true});
       font(false, 9, muted).text(`${quantity} × ${formatPdfMoney(price)}`, textX, y + 57, {width:200});
       font(true, 10.5, ink).text(formatPdfMoney(quantity * price), pageWidth - margin - 126, y + 31, {width:112, align:'right'});
       doc.moveTo(margin, y + rowHeight).lineTo(pageWidth - margin, y + rowHeight).lineWidth(.6).strokeColor(line).stroke();
@@ -840,7 +840,7 @@ async function orderPdfBuffer(state, requestedCode) {
     for (let pageIndex = 0; pageIndex < pageRange.count; pageIndex += 1) {
       doc.switchToPage(pageRange.start + pageIndex);
       doc.moveTo(margin, pageHeight - 41).lineTo(pageWidth - margin, pageHeight - 41).lineWidth(.5).strokeColor(line).stroke();
-      font(false, 7.5, muted).text('AEON Mooncake 2026 · Trọn vị đoàn viên', margin, pageHeight - 30, {width:300});
+      font(false, 7.5, muted).text('AEON BlackFriday 2026 · Siêu Sale', margin, pageHeight - 30, {width:300});
       font(false, 7.5, muted).text(`Trang ${pageIndex + 1}/${pageRange.count}`, pageWidth - margin - 100, pageHeight - 30, {width:100, align:'right'});
     }
     doc.end();
@@ -850,7 +850,7 @@ async function orderPdfBuffer(state, requestedCode) {
 const productWorkbookHeaders = [
   'ID hệ thống',
   'Tên sản phẩm',
-  'Giá bán',
+  'Giá khuyến mãi',
   'Giá thường',
   'Thương hiệu',
   'Mã sản phẩm',
@@ -873,7 +873,7 @@ function productWorkbookRow(product, variant = null) {
   return {
     'ID hệ thống': spreadsheetText(product?.id),
     'Tên sản phẩm': spreadsheetText(product?.name),
-    'Giá bán': spreadsheetNumber(product?.price),
+    'Giá khuyến mãi': spreadsheetNumber(product?.price),
     'Giá thường': spreadsheetNumber(product?.originalPrice),
     'Thương hiệu': spreadsheetText(product?.brand),
     'Mã sản phẩm': spreadsheetText(product?.sku),
@@ -906,9 +906,9 @@ function productWorkbookGuide() {
   const guideHeaders = ['Cột', 'Yêu cầu', 'Ví dụ'];
   const guideRows = [
     {'Cột': 'ID hệ thống', 'Yêu cầu': 'Giữ nguyên khi cập nhật danh sách đã tải xuống; để trống khi tạo sản phẩm mới', 'Ví dụ': 'sp-2026-01'},
-    {'Cột': 'Tên sản phẩm', 'Yêu cầu': 'Bắt buộc; lặp lại trên các dòng phân loại của cùng sản phẩm', 'Ví dụ': 'Hộp quà Trung Thu sắc màu'},
-    {'Cột': 'Giá bán', 'Yêu cầu': 'Giá chung khi không có phân loại; nếu có phân loại, hệ thống lấy giá thấp nhất', 'Ví dụ': '350000'},
-    {'Cột': 'Giá thường', 'Yêu cầu': 'Không bắt buộc; lớn hơn Giá bán để hiển thị giá gạch ngang và % giảm', 'Ví dụ': '450000'},
+    {'Cột': 'Tên sản phẩm', 'Yêu cầu': 'Bắt buộc; lặp lại trên các dòng phân loại của cùng sản phẩm', 'Ví dụ': 'Sản phẩm ưu đãi BlackFriday'},
+    {'Cột': 'Giá khuyến mãi', 'Yêu cầu': 'Giá chung khi không có phân loại; nếu có phân loại, hệ thống lấy giá thấp nhất', 'Ví dụ': '350000'},
+    {'Cột': 'Giá thường', 'Yêu cầu': 'Không bắt buộc; lớn hơn Giá khuyến mãi để hiển thị giá gạch ngang và % giảm', 'Ví dụ': '450000'},
     {'Cột': 'Thương hiệu', 'Yêu cầu': 'Nhập tên thương hiệu; bộ lọc sẽ tự động được tạo', 'Ví dụ': 'Kinh Đô'},
     {'Cột': 'Mã sản phẩm', 'Yêu cầu': 'Nên có và phải giống nhau trên các dòng phân loại của cùng sản phẩm', 'Ví dụ': 'AM-2026-01'},
     {'Cột': 'Nhãn hiển thị', 'Yêu cầu': 'Không bắt buộc', 'Ví dụ': 'Bán chạy'},
@@ -916,12 +916,12 @@ function productWorkbookGuide() {
     {'Cột': 'Thành phần', 'Yêu cầu': 'Không bắt buộc', 'Ví dụ': 'Hạt sen · trứng muối'},
     {'Cột': 'Mô tả', 'Yêu cầu': 'Không bắt buộc', 'Ví dụ': 'Hộp quà phù hợp để biếu tặng.'},
     {'Cột': 'Chi tiết sản phẩm', 'Yêu cầu': 'Không bắt buộc; hỗ trợ nội dung nhiều dòng', 'Ví dụ': 'Thông tin chi tiết về sản phẩm'},
-    {'Cột': 'Ảnh (URL)', 'Yêu cầu': 'Không bắt buộc; dùng link ảnh hoặc đường dẫn /assets/uploads/...', 'Ví dụ': 'https://example.com/mooncake.jpg'},
+    {'Cột': 'Ảnh (URL)', 'Yêu cầu': 'Không bắt buộc; dùng link ảnh hoặc đường dẫn /assets/uploads/...', 'Ví dụ': 'https://example.com/blackfriday-product.jpg'},
     {'Cột': 'Tên phân loại', 'Yêu cầu': 'Tên nhóm lựa chọn; lặp lại trên các dòng của cùng sản phẩm', 'Ví dụ': 'Màu sắc'},
     {'Cột': 'Giá trị phân loại', 'Yêu cầu': 'Mỗi lựa chọn nằm trên một dòng riêng', 'Ví dụ': 'Đỏ'},
     {'Cột': 'Mã phân loại', 'Yêu cầu': 'Không bắt buộc nhưng không được trùng trong cùng sản phẩm', 'Ví dụ': 'AM-2026-01-RED'},
     {'Cột': 'Giá phân loại', 'Yêu cầu': 'Bắt buộc khi có Giá trị phân loại', 'Ví dụ': '350000'},
-    {'Cột': 'Ảnh phân loại (URL)', 'Yêu cầu': 'Không bắt buộc; để trống sẽ dùng Ảnh (URL) của sản phẩm', 'Ví dụ': 'https://example.com/mooncake-red.jpg'}
+    {'Cột': 'Ảnh phân loại (URL)', 'Yêu cầu': 'Không bắt buộc; để trống sẽ dùng Ảnh (URL) của sản phẩm', 'Ví dụ': 'https://example.com/blackfriday-product-red.jpg'}
   ];
   return worksheetFromRows(guideHeaders, guideRows, [28, 72, 52]);
 }
@@ -932,7 +932,7 @@ function productImportTemplateWorkbook() {
 
   const exampleProduct = {
     id: '',
-    name: 'Hộp quà Trung Thu sắc màu',
+    name: 'Sản phẩm ưu đãi BlackFriday',
     price: 350000,
     originalPrice: 450000,
     brand: 'Kinh Đô',
@@ -942,7 +942,7 @@ function productImportTemplateWorkbook() {
     ingredients: 'Hạt sen · trứng muối',
     description: 'Hộp quà có nhiều màu để khách lựa chọn.',
     details: 'Chọn màu phù hợp trước khi thêm vào giỏ hàng.',
-    image: 'https://example.com/mooncake.jpg',
+    image: 'https://example.com/blackfriday-product.jpg',
     variantLabel: 'Màu sắc',
     variants: [
       {name:'Đỏ', sku:'AM-2026-01-RED', price:350000},
@@ -1069,7 +1069,7 @@ async function catalogImageBuffer(value) {
 async function productCatalogWorkbook(state) {
   const products = Array.isArray(state['aeon-products']) ? state['aeon-products'] : [];
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'AEON Mooncake 2026';
+  workbook.creator = 'AEON BlackFriday 2026';
   workbook.created = new Date();
 
   const catalogue = workbook.addWorksheet('Danh mục sản phẩm', {
@@ -1155,7 +1155,7 @@ async function productCatalogWorkbook(state) {
     cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:'FF9F1739'}};
     cell.alignment = {vertical:'middle', wrapText:true};
   });
-  dataSheet.getColumn('Giá bán').numFmt = '#,##0';
+  dataSheet.getColumn('Giá khuyến mãi').numFmt = '#,##0';
   dataSheet.getColumn('Giá thường').numFmt = '#,##0';
   dataSheet.getColumn('Giá phân loại').numFmt = '#,##0';
 
@@ -1301,7 +1301,7 @@ function googleSheetOrderPayload(input = {}) {
   const promotionText = safeOrder.promotion + (safeOrder.discount ? `${safeOrder.promotion ? ' – ' : ''}Giảm ${safeOrder.discount} VNĐ` : '');
   return {
     event: 'new_order',
-    source: 'AEON Mooncake 2026',
+    source: 'AEON BlackFriday 2026',
     submittedAt: new Date().toISOString(),
     orderCode,
     customerId,
@@ -1717,4 +1717,4 @@ http.createServer(async (request, response) => {
     response.writeHead(200, {'Content-Type':types[path.extname(filePath).toLowerCase()] || 'application/octet-stream', ...noCacheHeaders});
     response.end(content);
   });
-}).listen(port, host, () => console.log(`AEON Mooncake is available on http://${host}:${port}`));
+}).listen(port, host, () => console.log(`AEON BlackFriday is available on http://${host}:${port}`));

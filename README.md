@@ -1,6 +1,6 @@
-# AEON Mooncake 2026
+# AEON BlackFriday 2026
 
-Ứng dụng danh mục, báo giá và đặt bánh Trung Thu dành cho AEON Mooncake 2026.
+Ứng dụng danh mục, báo giá và đặt hàng dành cho AEON BlackFriday 2026.
 
 ## Chức năng
 

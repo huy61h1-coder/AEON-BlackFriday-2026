@@ -2,7 +2,7 @@
   "name": "aeon-mooncake-2026",
   "version": "1.0.0",
   "private": true,
-  "description": "Website danh mục và đặt bánh Trung Thu AEON 2026.",
+  "description": "Website danh mục và đặt hàng AEON BlackFriday 2026.",
   "scripts": {
     "start": "node server.js",
     "check": "node --check server.js && node --check storefront-state.js && node --check data.js && node --check app.js && node --check admin.js && node --check product-import.js && node scripts/check-storefront-regressions.js"

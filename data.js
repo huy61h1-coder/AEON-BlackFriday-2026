@@ -118,7 +118,7 @@ const AEON_DEFAULT_UI = {
   heroImage: '',
   heroPreviewVersion: '',
   logoText: 'AEON',
-  logoSubtitle: 'MOONCAKE 2026',
+  logoSubtitle: 'SIÊU SALE',
   logoImage: '',
   logoMode: 'text',
   quoteExcelUrl: '/assets/downloads/bao-gia-banh-trung-thu-aeon-2026.xlsx',
