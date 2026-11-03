@@ -810,6 +810,7 @@ async function saveImportedProducts(drafts) {
     const variants = draft.hasVariantColumns ? importedVariants : existingVariants;
     const variantPrices = variants.map(variant => Number(variant.price)).filter(value => Number.isFinite(value) && value >= 0);
     const price = variantPrices.length ? Math.min(...variantPrices) : Number(draft.price);
+    const originalPrice = Number(draft.originalPrice) || 0;
     if (!name || !Number.isFinite(price) || price <= 0) {
       throw new Error('Mỗi sản phẩm cần có tên và giá bán, hoặc ít nhất một phân loại có giá lớn hơn 0.');
     }
@@ -818,6 +819,7 @@ async function saveImportedProducts(drafts) {
       id: existing?.id || requestedId || `sp-import-${Date.now()}-${index}`,
       name,
       price: Math.round(price),
+      originalPrice: originalPrice > price ? Math.round(originalPrice) : 0,
       brand: normaliseAeonBrand(draft.brand) || normaliseAeonBrand(existing?.brand),
       description,
       sku,
@@ -932,6 +934,7 @@ function renderImportPreview(target, analysis, products) {
           <label>Tên sản phẩm<input data-import-name value="${escapeHtml(candidate.name || '')}" required></label>
           <label>Thương hiệu<select data-import-brand>${aeonBrandOptions(normaliseAeonBrand(candidate.brand) || normaliseAeonBrand(existing?.brand))}</select></label>
           <label>Giá bán (VNĐ)<input data-import-price type="number" min="0" inputmode="numeric" value="${Number(candidate.price) || ''}" required></label>
+          <label>Giá thường (VNĐ)<input data-import-original-price type="number" min="0" inputmode="numeric" value="${Number(candidate.originalPrice) || ''}" placeholder="Để trống nếu không giảm giá"></label>
           <label>Mã sản phẩm<input data-import-sku value="${escapeHtml(candidate.sku || '')}"></label>
           <label class="wide">Mô tả ngắn<textarea data-import-description rows="2">${escapeHtml(candidate.description || '')}</textarea></label>
           <label>Thành phần nổi bật<input data-import-ingredients value="${escapeHtml(candidate.ingredients || '')}" placeholder="Ví dụ: Hạt sen · trứng muối"></label>
@@ -981,6 +984,7 @@ function renderImportPreview(target, analysis, products) {
           name: card.querySelector('[data-import-name]').value,
           brand: card.querySelector('[data-import-brand]').value,
           price: card.querySelector('[data-import-price]').value,
+          originalPrice: card.querySelector('[data-import-original-price]').value,
           sku: card.querySelector('[data-import-sku]').value,
           description: card.querySelector('[data-import-description]').value,
           ingredients: card.querySelector('[data-import-ingredients]').value,
