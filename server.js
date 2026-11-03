@@ -51,7 +51,7 @@ const adminPermissionDefinitions = [
 ];
 const adminPermissionIds = new Set(adminPermissionDefinitions.map(item => item.id));
 const types = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.gif':'image/gif','.svg':'image/svg+xml','.ico':'image/x-icon','.pdf':'application/pdf','.csv':'text/csv; charset=utf-8','.xlsx':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','.xls':'application/vnd.ms-excel'};
-const storefrontBuild = '20261103-auto-brand-v1';
+const storefrontBuild = '20261103-blackfriday-preview-v1';
 const productImageFitCss = '\n/* Server-enforced product image fit. Kept here so even an older cached page gets the correction. */\n.product-media{position:relative!important;overflow:hidden!important}.product-media img.product-official-image{display:block!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;margin:0!important;padding:0!important;object-fit:contain!important;object-position:center center!important}\n';
 const noCacheHeaders = {
   'Cache-Control':'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0',
@@ -403,6 +403,19 @@ function versionedHeroImage(imagePath, previewVersion = '') {
   }
 }
 
+function socialPreviewImage(imagePath, previewVersion = '') {
+  try {
+    const imageUrl = new URL(imagePath, 'http://aeon.local');
+    if (imageUrl.hostname === 'res.cloudinary.com' && imageUrl.pathname.includes('/image/upload/')) {
+      imageUrl.pathname = imageUrl.pathname.replace('/image/upload/', '/image/upload/f_jpg,q_auto,w_1200,h_630,c_fill/');
+    }
+    const transformed = /^https?:\/\//i.test(imagePath) ? imageUrl.href : imageUrl.pathname;
+    return versionedHeroImage(transformed, previewVersion);
+  } catch {
+    return versionedHeroImage(imagePath, previewVersion);
+  }
+}
+
 function storefrontPageTitle(ui) {
   const titleText = String(ui?.title || '').replace(/\s+/g, ' ').trim();
   return titleText || 'BlackFriday';
@@ -417,7 +430,7 @@ function socialPreviewMeta(request, state) {
   const ui = state?.['aeon-ui'] || {};
   const currentImage = currentHeroImage(state);
   const previewVersion = heroPreviewVersion(state);
-  const heroImage = versionedHeroImage(currentImage, previewVersion);
+  const heroImage = socialPreviewImage(currentImage, previewVersion);
   let imageUrl;
   try {
     imageUrl = new URL(heroImage, requestOrigin(request));
