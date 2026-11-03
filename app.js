@@ -102,7 +102,7 @@ function discountPercent(product) {
 function productPriceMarkup(product, canOrder) {
   const discount = discountPercent(product);
   const regular = Number(product.originalPrice) || 0;
-  return `<div class="product-price-stack"><span class="price${canOrder ? '' : ' is-contact'}">${priceLabel(product)}</span>${discount ? `<span class="regular-price">${fmt(regular)}</span><span class="discount-percent">-${discount}%</span>` : ''}</div>`;
+  return `<div class="product-price-stack"><span class="price${canOrder ? '' : ' is-contact'}">${priceLabel(product)}</span>${discount ? `<span class="regular-price">${fmt(regular)}</span>` : ''}</div>`;
 }
 
 function hasVariants(product) {
@@ -1018,8 +1018,10 @@ function renderProducts() {
   grid.innerHTML = visibleProducts.map(product => {
     const variants = hasVariants(product);
     const canOrder = canOrderProduct(product);
+    const discount = discountPercent(product);
     return `<article class="product" data-product-id="${escapeHtml(product.id)}">
       ${storefrontProductAdminActions(product)}
+      ${discount ? `<span class="discount-percent product-discount-badge" aria-label="Giảm ${discount} phần trăm">-${discount}%</span>` : ''}
       <button class="product-media product-view" data-view="${escapeHtml(product.id)}" style="--product-bg:${safeColor(product.bg)}" aria-label="Xem chi tiết ${escapeHtml(product.name)}">
         ${product.label ? `<span class="tag">${escapeHtml(product.label)}</span>` : ''}
         ${productImageMarkup(product, 'product-official-image', 'product-image-placeholder', 'Hình ảnh<br>đang cập nhật')}
