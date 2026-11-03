@@ -51,7 +51,7 @@ const adminPermissionDefinitions = [
 ];
 const adminPermissionIds = new Set(adminPermissionDefinitions.map(item => item.id));
 const types = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.gif':'image/gif','.svg':'image/svg+xml','.ico':'image/x-icon','.pdf':'application/pdf','.csv':'text/csv; charset=utf-8','.xlsx':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','.xls':'application/vnd.ms-excel'};
-const storefrontBuild = '20261103-sale-price-v1';
+const storefrontBuild = '20261103-auto-brand-v1';
 const productImageFitCss = '\n/* Server-enforced product image fit. Kept here so even an older cached page gets the correction. */\n.product-media{position:relative!important;overflow:hidden!important}.product-media img.product-official-image{display:block!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;margin:0!important;padding:0!important;object-fit:contain!important;object-position:center center!important}\n';
 const noCacheHeaders = {
   'Cache-Control':'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0',
@@ -884,7 +884,7 @@ function productWorkbookGuide() {
     {'Cột': 'Tên sản phẩm', 'Yêu cầu': 'Bắt buộc; lặp lại trên các dòng phân loại của cùng sản phẩm', 'Ví dụ': 'Hộp quà Trung Thu sắc màu'},
     {'Cột': 'Giá bán', 'Yêu cầu': 'Giá chung khi không có phân loại; nếu có phân loại, hệ thống lấy giá thấp nhất', 'Ví dụ': '350000'},
     {'Cột': 'Giá thường', 'Yêu cầu': 'Không bắt buộc; lớn hơn Giá bán để hiển thị giá gạch ngang và % giảm', 'Ví dụ': '450000'},
-    {'Cột': 'Thương hiệu', 'Yêu cầu': 'Chọn đúng tên thương hiệu trong hệ thống nếu có', 'Ví dụ': 'Kinh Đô'},
+    {'Cột': 'Thương hiệu', 'Yêu cầu': 'Nhập tên thương hiệu; bộ lọc sẽ tự động được tạo', 'Ví dụ': 'Kinh Đô'},
     {'Cột': 'Mã sản phẩm', 'Yêu cầu': 'Nên có và phải giống nhau trên các dòng phân loại của cùng sản phẩm', 'Ví dụ': 'AM-2026-01'},
     {'Cột': 'Nhãn hiển thị', 'Yêu cầu': 'Không bắt buộc', 'Ví dụ': 'Bán chạy'},
     {'Cột': 'Quy cách / khối lượng', 'Yêu cầu': 'Không bắt buộc', 'Ví dụ': '4 bánh · 720g'},

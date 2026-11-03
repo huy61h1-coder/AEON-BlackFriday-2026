@@ -598,7 +598,7 @@ function quickProductRow(product, isNew = false, positionProducts = []) {
     <header><div><span class="quick-product-kicker">${isNew ? 'SẢN PHẨM MỚI' : 'CẬP NHẬT NHANH'}</span><strong>${escapeHtml(product.name || 'Sản phẩm mới')}</strong>${variants.length ? `<small>${variants.length} lựa chọn · chỉnh sửa đầy đủ để cập nhật</small>` : ''}</div><div class="quick-row-actions">${isNew ? '<button class="quick-remove" type="button" data-quick-remove aria-label="Bỏ sản phẩm mới">×</button>' : `<button class="quick-detail" type="button" data-quick-detail="${escapeHtml(id)}">Chỉnh sửa đầy đủ</button>`}</div></header>
     <div class="quick-product-fields">
       <label>Tên sản phẩm<input data-quick-name value="${escapeHtml(product.name || '')}" required></label>
-      <label>Thương hiệu<select data-quick-brand>${aeonBrandOptions(product.brand)}</select></label>
+      <label>Thương hiệu<input data-quick-brand value="${escapeHtml(normaliseAeonBrand(product.brand))}" placeholder="Nhập tên thương hiệu"></label>
       <label>${variants.length ? 'Giá từ (VNĐ)' : 'Giá bán (VNĐ)'}<input data-quick-price type="number" min="0" inputmode="numeric" value="${price}" required${variants.length ? ' readonly' : ''}></label>
       <label>Nhãn hiển thị<input data-quick-label value="${escapeHtml(product.label || '')}" placeholder="Ví dụ: Bán chạy"></label>
       ${isNew ? `<label>Vị trí trong danh sách<select data-quick-position>${productInsertPositionOptions(positionProducts)}</select></label>` : ''}
@@ -932,7 +932,7 @@ function renderImportPreview(target, analysis, products) {
         <header><label class="import-check"><input type="checkbox" data-import-select ${selectByDefault ? 'checked' : ''} ${canSelect ? '' : 'disabled'}><span>Chọn sản phẩm ${index + 1}</span></label><span class="import-confidence">Độ tin cậy ${Math.max(0, Math.min(100, Number(candidate.confidence) || 0))}%</span></header>
         <div class="import-fields">
           <label>Tên sản phẩm<input data-import-name value="${escapeHtml(candidate.name || '')}" required></label>
-          <label>Thương hiệu<select data-import-brand>${aeonBrandOptions(normaliseAeonBrand(candidate.brand) || normaliseAeonBrand(existing?.brand))}</select></label>
+          <label>Thương hiệu<input data-import-brand value="${escapeHtml(normaliseAeonBrand(candidate.brand) || normaliseAeonBrand(existing?.brand))}" placeholder="Tự động lấy từ file sản phẩm"></label>
           <label>Giá bán (VNĐ)<input data-import-price type="number" min="0" inputmode="numeric" value="${Number(candidate.price) || ''}" required></label>
           <label>Giá thường (VNĐ)<input data-import-original-price type="number" min="0" inputmode="numeric" value="${Number(candidate.originalPrice) || ''}" placeholder="Để trống nếu không giảm giá"></label>
           <label>Mã sản phẩm<input data-import-sku value="${escapeHtml(candidate.sku || '')}"></label>
@@ -1179,7 +1179,7 @@ function openProductEditor(id, options = {}) {
       <form id="productForm">
         <div class="admin-form-grid">
           <label>Tên sản phẩm<input name="name" required value="${escapeHtml(existing.name)}"></label>
-          <label>Thương hiệu<select name="brand">${aeonBrandOptions(existing.brand)}</select></label>
+          <label>Thương hiệu<input name="brand" value="${escapeHtml(normaliseAeonBrand(existing.brand))}" placeholder="Nhập tên thương hiệu"><small>Tự động đưa vào bộ lọc thương hiệu sau khi lưu.</small></label>
           ${id ? '' : `<label>Vị trí trong danh sách<select name="insertPosition">${productInsertPositionOptions(currentProducts)}</select><small>Sản phẩm sẽ được chèn đúng vị trí này khi lưu.</small></label>`}
           <label>Giá bán (VNĐ)<small data-variant-price-hint></small><input name="price" type="number" min="0" inputmode="numeric" required value="${existing.price ?? ''}" placeholder="Ví dụ: 750000"${editorVariants.length ? ' readonly' : ''}></label>
           <label>Giá thường (VNĐ)<input name="originalPrice" type="number" min="0" inputmode="numeric" value="${existing.originalPrice ?? ''}" placeholder="Ví dụ: 900000"><small>Để trống nếu không giảm giá.</small></label>

@@ -338,7 +338,7 @@ function headerField(value) {
   if (/(^| )(ten san pham|san pham|product name|product|item name|ten)( |$)/.test(key)) return 'name';
   if (/(^| )(gia ban|don gia|gia|price|unit price|vnd|vnđ)( |$)/.test(key)) return 'price';
   if (/(mo ta|description|details|noi dung|thong tin)/.test(key)) return 'description';
-  if (/(thuong hieu|brand|nhan hang)/.test(key)) return 'brand';
+  if (/(thuong hieu|ten thuong hieu|nhan hieu|nhan hang|brand|brand name|manufacturer)/.test(key)) return 'brand';
   if (/(nhan|label|collection|bo suu tap)/.test(key)) return 'label';
   if (/(quy cach|khoi luong|trong luong|weight|net weight)/.test(key)) return 'weight';
   if (/(thanh phan|ingredients|nguyen lieu)/.test(key)) return 'ingredients';
