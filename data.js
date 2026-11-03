@@ -252,6 +252,25 @@ const aeonStore = {
     return this.push(key, value);
   },
 
+  async deleteProduct(productId) {
+    const id = String(productId || '').trim();
+    if (!id || !canSync()) throw new Error('Không thể xác định sản phẩm cần xóa.');
+    const response = await fetch(`/api/products/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: {'Content-Type': 'application/json'},
+      // This also migrates catalogues that still exist only in an older
+      // browser-local store before applying the permanent server deletion.
+      body: JSON.stringify({products: this.products()})
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.error || 'Không thể xóa sản phẩm khỏi máy chủ.');
+    const products = Array.isArray(result.products) ? result.products : [];
+    localStorage.setItem('aeon-products', JSON.stringify(products));
+    this.lastWriteAt['aeon-products'] = Date.now();
+    window.dispatchEvent(new Event('aeon-store-sync'));
+    return result;
+  },
+
   isAdminSession() {
     try {
       return sessionStorage.getItem('aeon-admin') === 'true' || localStorage.getItem('aeon-admin') === 'true';

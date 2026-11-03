@@ -732,15 +732,8 @@ async function deleteStorefrontProduct(id) {
   }
   if (!confirm(`Xóa sản phẩm “${product.name}”?`)) return;
   try {
-    await aeonStore.pull();
-    const all = aeonStore.products();
-    const current = all.find(item => item.id === id);
-    if (!current) throw new Error('Sản phẩm đã thay đổi ở phiên khác. Hãy tải lại trang.');
-    const saved = await aeonStore.set('aeon-products', all.filter(item => item.id !== id));
-    if (!saved) {
-      await aeonStore.pull();
-      throw new Error('Không thể xóa sản phẩm. Vui lòng thử lại.');
-    }
+    const result = await aeonStore.deleteProduct(id);
+    const current = result.product || product;
     closeProductDetail();
     refreshStorefront();
     toast(`Đã xóa ${current.name}.`);

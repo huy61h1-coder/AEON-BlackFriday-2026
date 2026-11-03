@@ -1260,9 +1260,9 @@ function openProductEditor(id, options = {}) {
     $('#deleteProduct').onclick = async () => {
       if (!confirm('Xóa sản phẩm này?')) return;
       try {
-        await saveShared('aeon-products', aeonStore.products().filter(product => product.id !== id));
+        await aeonStore.deleteProduct(id);
         onDeleted();
-        toastAdmin('Đã xóa sản phẩm.');
+        toastAdmin('Đã xóa sản phẩm khỏi hệ thống.');
       } catch (error) {
         toastAdmin(error.message);
       }

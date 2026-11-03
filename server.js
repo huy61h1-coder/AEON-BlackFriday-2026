@@ -37,7 +37,8 @@ function publicSupabaseConfig() {
 const bundledSupabaseConfig = publicSupabaseConfig();
 const supabaseUrl = String(process.env.SUPABASE_URL || bundledSupabaseConfig.url).replace(/\/+$/, '');
 const supabaseAnonKey = String(process.env.SUPABASE_ANON_KEY || bundledSupabaseConfig.key).trim();
-const cloudStateKeys = ['aeon-products', 'aeon-ui', 'aeon-layout', 'aeon-brands', 'aeon-customers', 'aeon-orders'];
+const productTombstoneStateKey = 'aeon-product-tombstones';
+const cloudStateKeys = ['aeon-products', productTombstoneStateKey, 'aeon-ui', 'aeon-layout', 'aeon-brands', 'aeon-customers', 'aeon-orders'];
 const adminSessionCookie = 'aeon_admin_session';
 const adminSessionTtlSeconds = 12 * 60 * 60;
 const adminSessions = new Map();
@@ -51,7 +52,7 @@ const adminPermissionDefinitions = [
 ];
 const adminPermissionIds = new Set(adminPermissionDefinitions.map(item => item.id));
 const types = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.gif':'image/gif','.svg':'image/svg+xml','.ico':'image/x-icon','.pdf':'application/pdf','.csv':'text/csv; charset=utf-8','.xlsx':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','.xls':'application/vnd.ms-excel'};
-const storefrontBuild = '20261103-blackfriday-preview-v1';
+const storefrontBuild = '20261103-permanent-product-delete-v1';
 const productImageFitCss = '\n/* Server-enforced product image fit. Kept here so even an older cached page gets the correction. */\n.product-media{position:relative!important;overflow:hidden!important}.product-media img.product-official-image{display:block!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;margin:0!important;padding:0!important;object-fit:contain!important;object-position:center center!important}\n';
 const noCacheHeaders = {
   'Cache-Control':'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0',
@@ -315,6 +316,17 @@ function publicStorefrontState(state) {
     if (Object.hasOwn(state || {}, key)) visible[key] = state[key];
   });
   return visible;
+}
+
+function productTombstones(state) {
+  return new Set((Array.isArray(state?.[productTombstoneStateKey]) ? state[productTombstoneStateKey] : [])
+    .map(id => String(id || '').trim().slice(0, 100))
+    .filter(Boolean));
+}
+
+function withoutDeletedProducts(state, products) {
+  const deletedIds = productTombstones(state);
+  return (Array.isArray(products) ? products : []).filter(product => !deletedIds.has(String(product?.id || '')));
 }
 
 function stateForRequest(request) {
@@ -1484,6 +1496,30 @@ http.createServer(async (request, response) => {
     }
   }
 
+  const deleteProductMatch = request.method === 'DELETE' ? /^\/api\/products\/([^/]+)$/.exec(pathname) : null;
+  if (deleteProductMatch) {
+    if (!requirePermission(request, response, 'products')) return;
+    const productId = String(deleteProductMatch[1] || '').trim().slice(0, 100);
+    if (!productId) return json(response, 400, {error:'Mã sản phẩm không hợp lệ.'});
+    const state = readState();
+    const serverProducts = Array.isArray(state['aeon-products']) ? state['aeon-products'] : [];
+    let browserProducts = [];
+    try {
+      const payload = JSON.parse((await readBody(request, 5 * 1024 * 1024)).toString('utf8') || '{}');
+      browserProducts = Array.isArray(payload.products) ? payload.products : [];
+    } catch {
+      browserProducts = [];
+    }
+    const products = serverProducts.length ? serverProducts : withoutDeletedProducts(state, browserProducts);
+    const deletedProduct = products.find(product => String(product?.id || '') === productId) || null;
+    const tombstones = productTombstones(state);
+    tombstones.add(productId);
+    state['aeon-products'] = products.filter(product => String(product?.id || '') !== productId);
+    state[productTombstoneStateKey] = [...tombstones].slice(-5000);
+    await writeState(state, ['aeon-products', productTombstoneStateKey]);
+    return json(response, 200, {ok:true, deleted:Boolean(deletedProduct), product:deletedProduct, products:state['aeon-products']});
+  }
+
   if (request.method === 'GET' && pathname === '/api/state') return json(response, 200, stateForRequest(request));
   if (request.method === 'GET' && pathname === '/api/export/customers.xlsx') {
     if (!requirePermission(request, response, 'customers')) return;
@@ -1572,7 +1608,7 @@ http.createServer(async (request, response) => {
           }
         }
       }
-      state[key] = value;
+      state[key] = key === 'aeon-products' ? withoutDeletedProducts(state, value) : value;
       await writeState(state, [key]);
       return json(response, 200, {ok:true});
     } catch (error) { return json(response, 400, {error:error.message || 'Không thể lưu dữ liệu.'}); }
