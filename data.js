@@ -391,8 +391,10 @@ const aeonStore = {
     }
   },
 
-  async pull() {
+  async pull(options = {}) {
     if (!canSync()) return false;
+
+    const preserveLocalKeys = new Set(Array.isArray(options.preserveLocalKeys) ? options.preserveLocalKeys : []);
 
     const startedAt = Date.now();
     try {
@@ -411,7 +413,7 @@ const aeonStore = {
 
       available.forEach(key => {
         // Do not let a slower GET overwrite a just-saved local change.
-        if (this.writing.has(key) || (this.lastWriteAt[key] || 0) > startedAt) return;
+        if (preserveLocalKeys.has(key) || this.writing.has(key) || (this.lastWriteAt[key] || 0) > startedAt) return;
         localStorage.setItem(key, JSON.stringify(state[key]));
       });
       window.dispatchEvent(new Event('aeon-store-sync'));

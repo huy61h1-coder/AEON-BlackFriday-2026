@@ -66,7 +66,14 @@ async function hydrateAdminState() {
     localStorage.removeItem('aeon-customers');
     localStorage.removeItem('aeon-orders');
   }
-  await aeonStore.pull();
+  // The storefront and admin must begin from the same deployed campaign
+  // layout. Keep only the deployed UI/layout while still pulling products,
+  // orders and the remaining server-managed data after authentication.
+  const deployed = window.AEON_DEPLOYED_STOREFRONT_STATE;
+  const preserveLocalKeys = deployed && typeof deployed === 'object'
+    ? ['aeon-ui', 'aeon-layout'].filter(key => Object.hasOwn(deployed, key))
+    : [];
+  await aeonStore.pull({preserveLocalKeys});
 }
 
 function safeAdminThemeColor(value, fallback) {
