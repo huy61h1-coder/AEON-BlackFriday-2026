@@ -1116,6 +1116,7 @@ function openProductEditor(id, options = {}) {
     name: '',
     description: '',
     price: '',
+    originalPrice: '',
     brand: '',
     label: '',
     image: '',
@@ -1140,6 +1141,7 @@ function openProductEditor(id, options = {}) {
     data.variants = getProductVariants();
     data.variantLabel = data.variants.length ? cleanTextImport(data.variantLabel, 100) || 'Phân loại' : '';
     data.price = data.variants.length ? Math.min(...data.variants.map(variant => variant.price)) : Number(data.price);
+    data.originalPrice = Number(data.originalPrice) > data.price ? Math.round(Number(data.originalPrice)) : 0;
     if (!Number.isFinite(data.price) || data.price < 0) throw new Error('Giá bán không hợp lệ.');
     data.image = normaliseImageUrl(data.image);
     data.brand = normaliseAeonBrand(data.brand);
@@ -1176,6 +1178,7 @@ function openProductEditor(id, options = {}) {
           <label>Thương hiệu<select name="brand">${aeonBrandOptions(existing.brand)}</select></label>
           ${id ? '' : `<label>Vị trí trong danh sách<select name="insertPosition">${productInsertPositionOptions(currentProducts)}</select><small>Sản phẩm sẽ được chèn đúng vị trí này khi lưu.</small></label>`}
           <label>Giá bán (VNĐ)<small data-variant-price-hint></small><input name="price" type="number" min="0" inputmode="numeric" required value="${existing.price ?? ''}" placeholder="Ví dụ: 750000"${editorVariants.length ? ' readonly' : ''}></label>
+          <label>Giá thường (VNĐ)<input name="originalPrice" type="number" min="0" inputmode="numeric" value="${existing.originalPrice ?? ''}" placeholder="Ví dụ: 900000"><small>Để trống nếu không giảm giá.</small></label>
           <label>Mô tả ngắn<textarea name="description" required rows="2" placeholder="Tóm tắt hiển thị trên thẻ sản phẩm">${escapeHtml(existing.description)}</textarea></label>
           <label>Nhãn hiển thị<input name="label" value="${escapeHtml(existing.label)}"></label>
           <label>Quy cách / khối lượng<input name="weight" value="${escapeHtml(existing.weight || '')}" placeholder="Ví dụ: 4 bánh · 720g"></label>

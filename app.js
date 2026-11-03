@@ -50,10 +50,12 @@ function normaliseVariants(value, fallbackPrice) {
 
 function normaliseProduct(product) {
   const price = Math.max(0, Number(product.price) || 0);
+  const originalPrice = Math.max(0, Number(product.originalPrice) || 0);
   return {
     id: String(product.id || ''),
     name: String(product.name || 'Sản phẩm đang cập nhật'),
     price,
+    originalPrice: originalPrice > price ? originalPrice : 0,
     description: String(product.description || ''),
     details: String(product.details || product.description || ''),
     label: String(product.label || ''),
@@ -87,6 +89,20 @@ function priceLabel(product) {
     return available.length ? `Từ ${fmt(Math.min(...available))}` : 'Liên hệ';
   }
   return product.price > 0 ? fmt(product.price) : 'Liên hệ';
+}
+
+function discountPercent(product) {
+  const originalPrice = Number(product.originalPrice) || 0;
+  const sellingPrice = Number(product.price) || 0;
+  return originalPrice > sellingPrice && sellingPrice > 0
+    ? Math.round((1 - sellingPrice / originalPrice) * 100)
+    : 0;
+}
+
+function productPriceMarkup(product, canOrder) {
+  const discount = discountPercent(product);
+  const regular = Number(product.originalPrice) || 0;
+  return `<div class="product-price-stack"><span class="price${canOrder ? '' : ' is-contact'}">${priceLabel(product)}</span>${discount ? `<span class="regular-price">${fmt(regular)}</span><span class="discount-percent">-${discount}%</span>` : ''}</div>`;
 }
 
 function hasVariants(product) {
@@ -547,6 +563,7 @@ function productFromStorefrontForm(form, existing = {}, variants = []) {
   const name = cleanStorefrontProductText(data.name, 160);
   const description = cleanStorefrontProductText(data.description, 500);
   const price = variants.length ? Math.min(...variants.map(variant => variant.price)) : Number(data.price);
+  const originalPrice = Number(data.originalPrice) || 0;
   if (!name || !description || !Number.isFinite(price) || price < 0) {
     throw new Error('Vui lòng nhập tên, mô tả và giá bán hợp lệ.');
   }
@@ -554,6 +571,7 @@ function productFromStorefrontForm(form, existing = {}, variants = []) {
     ...existing,
     name,
     price: Math.round(price),
+    originalPrice: originalPrice > price ? Math.round(originalPrice) : 0,
     label: cleanStorefrontProductText(data.label, 100),
     brand: normaliseAeonBrand(data.brand),
     description,
@@ -613,7 +631,7 @@ function openStorefrontProductEditor(id) {
     toast('Không tìm thấy sản phẩm cần chỉnh sửa.');
     return;
   }
-  const existing = found ? {...found, variants: normaliseVariants(found.variants, Math.max(0, Number(found.price) || 0))} : {id: '', name: '', price: '', description: '', details: '', label: '', brand: '', image: '', weight: '', ingredients: '', sku: '', variants: [], bg: '#e9c38b', box: '#8f1834'};
+  const existing = found ? {...found, variants: normaliseVariants(found.variants, Math.max(0, Number(found.price) || 0))} : {id: '', name: '', price: '', originalPrice: '', description: '', details: '', label: '', brand: '', image: '', weight: '', ingredients: '', sku: '', variants: [], bg: '#e9c38b', box: '#8f1834'};
   storefrontAdminLastFocus = document.activeElement;
   let modal = $('#storefrontAdminEditor');
   if (!modal) {
@@ -633,6 +651,7 @@ function openStorefrontProductEditor(id) {
         <label>Thương hiệu<select name="brand">${aeonBrandOptions(existing.brand)}</select></label>
         ${existing.id ? '' : `<label>Vị trí trong danh sách<select name="insertPosition">${storefrontProductInsertPositionOptions(aeonStore.products())}</select><small>Sản phẩm sẽ được chèn đúng vị trí này khi lưu.</small></label>`}
         <label>Giá bán (VNĐ)<small data-variant-price-hint></small><input name="price" type="number" min="0" inputmode="numeric" required value="${existing.price ?? ''}" placeholder="Ví dụ: 750000"${existing.variants?.length ? ' readonly' : ''}></label>
+        <label>Giá thường (VNĐ)<input name="originalPrice" type="number" min="0" inputmode="numeric" value="${existing.originalPrice ?? ''}" placeholder="Ví dụ: 900000"><small>Để trống nếu không giảm giá.</small></label>
         <label>Nhãn hiển thị<input name="label" value="${escapeHtml(existing.label || '')}" placeholder="Ví dụ: Bán chạy"></label>
         <label>Quy cách / khối lượng<input name="weight" value="${escapeHtml(existing.weight || '')}" placeholder="Ví dụ: 4 bánh · 720g"></label>
         <label class="wide">Mô tả ngắn<textarea name="description" required rows="2">${escapeHtml(existing.description || '')}</textarea></label>
@@ -1009,7 +1028,7 @@ function renderProducts() {
         ${product.brand ? `<span class="product-brand">${escapeHtml(product.brand)}</span>` : ''}
         <h3>${escapeHtml(product.name)}</h3>
         <div class="product-bottom">
-          <span class="price${canOrder ? '' : ' is-contact'}">${priceLabel(product)}</span>
+          ${productPriceMarkup(product, canOrder)}
           <div class="product-bottom-actions">
             ${variants ? `<button class="product-choose" data-view="${escapeHtml(product.id)}" aria-label="Chọn phân loại cho ${escapeHtml(product.name)}">Chọn loại</button>` : canOrder ? `<button class="product-add" data-add="${escapeHtml(product.id)}" aria-label="Thêm ${escapeHtml(product.name)} vào giỏ hàng" title="Thêm vào giỏ hàng"><svg class="product-cart-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 1.9-1.5L20 8H7.1"></path><circle cx="10" cy="20" r="1"></circle><circle cx="17" cy="20" r="1"></circle></svg><span class="sr-only">Thêm vào giỏ hàng</span></button>` : '<a class="product-contact" href="tel:0327747337">Liên hệ</a>'}
           </div>

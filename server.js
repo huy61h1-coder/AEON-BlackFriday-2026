@@ -817,6 +817,7 @@ const productWorkbookHeaders = [
   'ID hệ thống',
   'Tên sản phẩm',
   'Giá bán',
+  'Giá thường',
   'Thương hiệu',
   'Mã sản phẩm',
   'Nhãn hiển thị',
@@ -832,13 +833,14 @@ const productWorkbookHeaders = [
   'Ảnh phân loại (URL)'
 ];
 
-const productWorkbookWidths = [20, 38, 16, 26, 20, 18, 24, 38, 46, 58, 46, 20, 24, 20, 18, 46];
+const productWorkbookWidths = [20, 38, 16, 16, 26, 20, 18, 24, 38, 46, 58, 46, 20, 24, 20, 18, 46];
 
 function productWorkbookRow(product, variant = null) {
   return {
     'ID hệ thống': spreadsheetText(product?.id),
     'Tên sản phẩm': spreadsheetText(product?.name),
     'Giá bán': spreadsheetNumber(product?.price),
+    'Giá thường': spreadsheetNumber(product?.originalPrice),
     'Thương hiệu': spreadsheetText(product?.brand),
     'Mã sản phẩm': spreadsheetText(product?.sku),
     'Nhãn hiển thị': spreadsheetText(product?.label),
@@ -872,6 +874,7 @@ function productWorkbookGuide() {
     {'Cột': 'ID hệ thống', 'Yêu cầu': 'Giữ nguyên khi cập nhật danh sách đã tải xuống; để trống khi tạo sản phẩm mới', 'Ví dụ': 'sp-2026-01'},
     {'Cột': 'Tên sản phẩm', 'Yêu cầu': 'Bắt buộc; lặp lại trên các dòng phân loại của cùng sản phẩm', 'Ví dụ': 'Hộp quà Trung Thu sắc màu'},
     {'Cột': 'Giá bán', 'Yêu cầu': 'Giá chung khi không có phân loại; nếu có phân loại, hệ thống lấy giá thấp nhất', 'Ví dụ': '350000'},
+    {'Cột': 'Giá thường', 'Yêu cầu': 'Không bắt buộc; lớn hơn Giá bán để hiển thị giá gạch ngang và % giảm', 'Ví dụ': '450000'},
     {'Cột': 'Thương hiệu', 'Yêu cầu': 'Chọn đúng tên thương hiệu trong hệ thống nếu có', 'Ví dụ': 'Kinh Đô'},
     {'Cột': 'Mã sản phẩm', 'Yêu cầu': 'Nên có và phải giống nhau trên các dòng phân loại của cùng sản phẩm', 'Ví dụ': 'AM-2026-01'},
     {'Cột': 'Nhãn hiển thị', 'Yêu cầu': 'Không bắt buộc', 'Ví dụ': 'Bán chạy'},
@@ -897,6 +900,7 @@ function productImportTemplateWorkbook() {
     id: '',
     name: 'Hộp quà Trung Thu sắc màu',
     price: 350000,
+    originalPrice: 450000,
     brand: 'Kinh Đô',
     sku: 'AM-2026-01',
     label: 'Bán chạy',
@@ -1118,6 +1122,7 @@ async function productCatalogWorkbook(state) {
     cell.alignment = {vertical:'middle', wrapText:true};
   });
   dataSheet.getColumn('Giá bán').numFmt = '#,##0';
+  dataSheet.getColumn('Giá thường').numFmt = '#,##0';
   dataSheet.getColumn('Giá phân loại').numFmt = '#,##0';
 
   const guideSheet = workbook.addWorksheet('Hướng dẫn');

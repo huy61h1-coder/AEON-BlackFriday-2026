@@ -40,7 +40,7 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 .product { background:var(--bf-panel)!important; border-color:var(--bf-line)!important; box-shadow:0 12px 28px rgba(0,0,0,.22)!important; }
 .product:hover { box-shadow:0 17px 34px rgba(226,29,63,.18)!important; }
 .product-info { background:var(--bf-panel)!important; }.product-info h3,.product-brand { color:var(--bf-white)!important; }.product-info p { color:rgba(255,250,244,.68)!important; }
-.product-bottom { border-color:var(--bf-line)!important; }.price { color:var(--bf-gold)!important; }.tag { background:var(--bf-red)!important; }
+.product-bottom { border-color:var(--bf-line)!important; }.price { color:var(--bf-gold)!important; }.regular-price { color:rgba(255,250,244,.62)!important; }.discount-percent { background:var(--bf-red)!important; color:#fff!important; }.tag { background:var(--bf-red)!important; }
 .gift-banner { background:linear-gradient(105deg,#7f1024,#e21d3f 50%,#18080d)!important; }.gift-banner .eyebrow { color:var(--bf-gold)!important; }
 .gift-shape { color:var(--bf-gold)!important; border-color:rgba(247,201,72,.5)!important; }.gift-shape:before{border-color:rgba(247,201,72,.24)!important;}
 .checkout { background:#111!important; }.checkout form,.cart-drawer,.success-modal>div { background:var(--bf-panel-2)!important; color:var(--bf-white)!important; }

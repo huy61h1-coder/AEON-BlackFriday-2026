@@ -149,8 +149,11 @@
 
 .product-bottom-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 10px; margin-left: auto; min-width: 0; }
 
-.price { display: block; flex: 1 1 0; min-width: 0; color: var(--red); font-size: 20px; line-height: 1.2; white-space: nowrap; }
+.product-price-stack { display:flex; flex:1 1 0; min-width:0; flex-wrap:wrap; align-items:baseline; gap:3px 8px; }
+.price { display: block; min-width: 0; color: var(--red); font-size: 20px; line-height: 1.2; white-space: nowrap; }
 .price.is-contact { color: var(--ink); font-size: 14px; }
+.regular-price { color:var(--muted); font-size:11px; line-height:1.2; text-decoration:line-through; text-decoration-thickness:1px; white-space:nowrap; }
+.discount-percent { display:inline-flex; align-items:center; min-height:18px; padding:1px 5px; border-radius:2px; background:var(--red); color:#fff; font-size:9px; font-weight:800; line-height:1; white-space:nowrap; }
 
 .product-add,
 .product-contact {

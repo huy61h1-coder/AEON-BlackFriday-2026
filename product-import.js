@@ -331,6 +331,7 @@ function headerField(value) {
   if (/(anh phan loai|hinh anh phan loai|variant image|option image)/.test(key)) return 'variantImage';
   if (/(ma phan loai|ma bien the|variant sku|option sku)/.test(key)) return 'variantSku';
   if (/(gia phan loai|gia bien the|variant price|option price)/.test(key)) return 'variantPrice';
+  if (/(gia thuong|gia niem yet|gia goc|regular price|original price|list price)/.test(key)) return 'originalPrice';
   if (/(gia tri phan loai|phan loai|bien the|lua chon|variant value|option value)/.test(key)) return 'variantName';
   if (/(chi tiet san pham|noi dung chi tiet|full details)/.test(key)) return 'details';
   if (/(ma san pham|ma sp|sku|product code|code)/.test(key)) return 'sku';
@@ -395,6 +396,7 @@ function candidatesFromSpreadsheet(buffer, filename = '') {
       });
       const name = tidyName(record.name);
       const price = parsePrice(record.price);
+      const originalPrice = parsePrice(record.originalPrice);
       const variantName = cleanText(record.variantName || '', 120);
       const variantImage = cleanText(record.variantImage || '', 600);
       const variantSku = cleanText(record.variantSku || '', 100);
@@ -421,6 +423,7 @@ function candidatesFromSpreadsheet(buffer, filename = '') {
           id: systemId,
           name,
           price: effectivePrice || 0,
+          originalPrice: originalPrice && originalPrice > effectivePrice ? originalPrice : 0,
           description: cleanText(record.description || '', 500),
           sku,
           brand,
@@ -443,6 +446,7 @@ function candidatesFromSpreadsheet(buffer, filename = '') {
           if (!candidate[field] && record[field]) candidate[field] = cleanText(record[field], field === 'image' ? 600 : field === 'details' ? 1200 : 500);
         });
         if (effectivePrice) candidate.price = candidate.price ? Math.min(candidate.price, effectivePrice) : effectivePrice;
+        if (originalPrice > candidate.price) candidate.originalPrice = Math.max(Number(candidate.originalPrice) || 0, originalPrice);
         candidate.hasVariantColumns ||= hasVariantColumns;
         candidate.confidence = Math.max(candidate.confidence, effectivePrice ? 96 : 74);
       }
