@@ -408,6 +408,18 @@ function storefrontPageTitle(ui) {
   return titleText || 'AEON Mooncake 2026';
 }
 
+function socialPreviewTitle(request, ui) {
+  try {
+    // Link previews identify the site by its live subdomain, not a campaign
+    // headline that an editor may change later.
+    const hostname = new URL(requestOrigin(request)).hostname.replace(/^www\./i, '');
+    if (hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') return hostname;
+  } catch {
+    // Fall through to the editable title when a hostname is unavailable.
+  }
+  return storefrontPageTitle(ui);
+}
+
 function socialPreviewMeta(request, state) {
   const ui = state?.['aeon-ui'] || {};
   const currentImage = currentHeroImage(state);
@@ -419,10 +431,10 @@ function socialPreviewMeta(request, state) {
   } catch {
     return '';
   }
-  const title = storefrontPageTitle(ui);
+  const title = socialPreviewTitle(request, ui);
   const description = String(ui.intro || 'Bộ sưu tập bánh Trung Thu AEON 2026 — món quà trọn vẹn cho mùa đoàn viên.').replace(/\s+/g, ' ').trim();
   const previewUrl = new URL('/index.html', requestOrigin(request));
-  previewUrl.searchParams.set('preview', previewVersion);
+  previewUrl.searchParams.set('preview', `${previewVersion}-host`);
   const pageUrl = previewUrl.href;
   return `<meta property="og:type" content="website" />\n  <meta property="og:locale" content="vi_VN" />\n  <meta property="og:title" content="${escapeHtmlAttribute(title)}" />\n  <meta property="og:description" content="${escapeHtmlAttribute(description)}" />\n  <meta property="og:url" content="${escapeHtmlAttribute(pageUrl)}" />\n  <meta property="og:image" content="${escapeHtmlAttribute(imageUrl.href)}" />\n  <meta property="og:image:secure_url" content="${escapeHtmlAttribute(imageUrl.href)}" />\n  <meta property="og:image:alt" content="${escapeHtmlAttribute(title)}" />\n  <meta name="twitter:card" content="summary_large_image" />\n  <meta name="twitter:title" content="${escapeHtmlAttribute(title)}" />\n  <meta name="twitter:description" content="${escapeHtmlAttribute(description)}" />\n  <meta name="twitter:image" content="${escapeHtmlAttribute(imageUrl.href)}" />`;
 }
