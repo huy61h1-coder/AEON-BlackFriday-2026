@@ -77,6 +77,20 @@ footer { background:#050505!important; border-top:1px solid var(--bf-line); } fo
    --ink, so a variable can otherwise become white inside this light dialog. */
 .product-modal-card #productDetailBody .detail-copy h2,.product-modal-card #productDetailBody .detail-copy dd,.product-modal-card #productDetailBody .detail-description,.product-modal-card #productDetailBody .detail-meta { color:#242224!important; }
 .product-modal-card #productDetailBody .detail-copy dt { color:#625c58!important; }
+.product-modal-card #productDetailBody .detail-copy h2,
+.product-modal-card #productDetailBody .detail-copy p,
+.product-modal-card #productDetailBody .detail-copy dd,
+.product-modal-card #productDetailBody .detail-copy dt,
+.product-modal-card #productDetailBody .detail-copy span,
+.product-modal-card #productDetailBody .detail-copy strong {
+  color:#242224!important;
+  -webkit-text-fill-color: currentColor;
+}
+.product-modal-card #productDetailBody .detail-copy p.detail-brand,
+.product-modal-card #productDetailBody .detail-copy p.detail-meta,
+.product-modal-card #productDetailBody .detail-copy dt { color:#625c58!important; }
+.product-modal-card #productDetailBody .detail-copy p.detail-brand { color:var(--bf-red)!important; }
+.product-modal-card #productDetailBody .detail-copy p.detail-price { color:var(--bf-red)!important; }
 .product-modal-card .detail-variant-picker { background:#fcfaf6!important; color:#242224!important; }
 .product-modal-card .detail-variant-head>span { color:#625c58!important; }
 .product-modal-card .detail-variant-head b { color:var(--wine)!important; }

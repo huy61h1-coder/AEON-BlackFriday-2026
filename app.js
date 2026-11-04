@@ -594,8 +594,8 @@ function productFromStorefrontForm(form, existing = {}, variants = []) {
     label: cleanStorefrontProductText(data.label, 100),
     brand: normaliseAeonBrand(data.brand) || inferAeonBrandFromProductName(name),
     description,
-    weight: cleanStorefrontProductText(data.weight, 160),
-    ingredients: cleanStorefrontProductText(data.ingredients, 250),
+    weight: cleanStorefrontProductText(data.weight, 160, true),
+    ingredients: cleanStorefrontProductText(data.ingredients, 250, true),
     sku: cleanStorefrontProductText(data.sku, 100),
     variants,
     image: images[0] || '',
@@ -673,9 +673,9 @@ function openStorefrontProductEditor(id) {
         <label>Giá khuyến mãi (VNĐ)<small data-variant-price-hint></small><input name="price" type="number" min="0" inputmode="numeric" required value="${existing.price ?? ''}" placeholder="Ví dụ: 750000"${existing.variants?.length ? ' readonly' : ''}></label>
         <label>Giá thường (VNĐ)<input name="originalPrice" type="number" min="0" inputmode="numeric" value="${existing.originalPrice ?? ''}" placeholder="Ví dụ: 900000"><small>Để trống nếu không giảm giá.</small></label>
         <label>Nhãn hiển thị<input name="label" value="${escapeHtml(existing.label || '')}" placeholder="Ví dụ: Bán chạy"></label>
-        <label>Kích thước<input name="weight" value="${escapeHtml(existing.weight || '')}" placeholder="Ví dụ: 4 bánh · 720g"></label>
+        <label>Kích thước<textarea name="weight" rows="2" placeholder="Ví dụ: 4 bánh · 720g">${escapeHtml(existing.weight || '')}</textarea></label>
         <label class="wide">Mô tả ngắn<textarea name="description" required rows="2">${escapeHtml(existing.description || '')}</textarea></label>
-        <label>Tính năng nổi bật<input name="ingredients" value="${escapeHtml(existing.ingredients || '')}"></label>
+        <label>Tính năng nổi bật<textarea name="ingredients" rows="3" placeholder="Mỗi dòng một tính năng">${escapeHtml(existing.ingredients || '')}</textarea></label>
         <label>Mã sản phẩm<input name="sku" value="${escapeHtml(existing.sku || '')}"></label>
         <fieldset class="product-variant-editor wide"><legend>Lựa chọn sản phẩm</legend><p>Một hình có thể đại diện nhiều loại hàng. Khách sẽ chọn loại trước khi thêm vào giỏ.</p><div class="product-variant-rows" data-variant-rows>${(existing.variants || []).map(storefrontVariantRowMarkup).join('')}</div><button type="button" data-add-variant>+ Thêm lựa chọn</button></fieldset>
         <label class="wide">Ảnh chính (URL)<input name="image" value="${escapeHtml(existing.image || '')}" placeholder="https://... hoặc /assets/uploads/ten-anh.png"></label>
