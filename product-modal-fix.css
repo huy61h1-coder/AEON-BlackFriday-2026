@@ -102,6 +102,7 @@
 .detail-copy h2 {
   font-size: clamp(16px, 1.5vw, 23px);
   word-break: break-word;
+  white-space: pre-line;
 }
 
 .detail-copy dl {
