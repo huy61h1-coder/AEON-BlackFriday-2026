@@ -326,8 +326,8 @@ function candidatesFromText(sourceText, sourceKind) {
 function headerField(value) {
   const key = normaliseKey(value);
   if (!key) return '';
-  const extraImage = /(?:^| )(?:anh|hinh anh|image)(?: |_)?([2-5])(?: |$|url)/.exec(key);
-  if (extraImage) return `image${extraImage[1]}`;
+  const extraImage = /(?:^| )(?:anh|hinh anh|image)(?: |_)?([1-5])(?: |$|url)/.exec(key);
+  if (extraImage) return extraImage[1] === '1' ? 'image' : `image${extraImage[1]}`;
   if (/(^| )(id he thong|id san pham|product id|system id)( |$)/.test(key)) return 'id';
   if (/(ten phan loai|nhom phan loai|variant label|variant group|option name)/.test(key)) return 'variantLabel';
   if (/(anh phan loai|hinh anh phan loai|variant image|option image)/.test(key)) return 'variantImage';

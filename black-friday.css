@@ -91,6 +91,14 @@ footer { background:#050505!important; border-top:1px solid var(--bf-line); } fo
 .product-modal-card #productDetailBody .detail-copy dt { color:#625c58!important; }
 .product-modal-card #productDetailBody .detail-copy p.detail-brand { color:var(--bf-red)!important; }
 .product-modal-card #productDetailBody .detail-copy p.detail-price { color:var(--bf-red)!important; }
+.product-modal-card #productDetailBody .detail-copy,
+.product-modal-card #productDetailBody .detail-copy * {
+  opacity:1!important;
+  filter:none!important;
+  mix-blend-mode:normal!important;
+}
+.product-modal-card #productDetailBody .detail-copy h2 { color:#171717!important; -webkit-text-fill-color:#171717!important; }
+.product-modal-card #productDetailBody .detail-copy dd { color:#242224!important; -webkit-text-fill-color:#242224!important; }
 .product-modal-card .detail-variant-picker { background:#fcfaf6!important; color:#242224!important; }
 .product-modal-card .detail-variant-head>span { color:#625c58!important; }
 .product-modal-card .detail-variant-head b { color:var(--wine)!important; }
