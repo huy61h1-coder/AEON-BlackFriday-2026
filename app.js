@@ -19,6 +19,17 @@ function normaliseImageUrl(value) {
   return `/${url.replace(/^\.?\//, '')}`;
 }
 
+function normaliseProductImages(value, primaryImage = '') {
+  const rawImages = (Array.isArray(value) ? value : [value]).flatMap(item => String(item ?? '').split(/[\r\n,]+/));
+  const images = rawImages
+    .map(normaliseImageUrl)
+    .filter(Boolean);
+  const legacyImage = normaliseImageUrl(primaryImage);
+  if (!images.length && legacyImage) images.push(legacyImage);
+  else if (legacyImage && !images.includes(legacyImage)) images.push(legacyImage);
+  return [...new Set(images)].slice(0, 12);
+}
+
 function normaliseHeroDisplayMode(value) {
   return String(value || '').trim() === 'image-only' ? 'image-only' : 'content-image';
 }
@@ -53,6 +64,7 @@ function normaliseProduct(product) {
   const variants = normaliseVariants(product.variants, price);
   const effectivePrice = price || Math.min(...variants.map(variant => variant.price).filter(value => value > 0), Infinity);
   const originalPrice = productCommerceValue(product, ['originalPrice', 'regularPrice', 'listPrice', 'oldPrice', 'retailPrice', 'normalPrice', 'giaThuong']);
+  const images = normaliseProductImages(product.images, product.image);
   return {
     id: String(product.id || ''),
     name: String(product.name || 'Sản phẩm đang cập nhật'),
@@ -62,7 +74,8 @@ function normaliseProduct(product) {
     details: String(product.details || product.description || ''),
     label: String(product.label || ''),
     brand: normaliseAeonBrand(product.brand) || inferAeonBrandFromProductName(product.name),
-    image: normaliseImageUrl(product.image),
+    image: images[0] || '',
+    images,
     bg: safeColor(product.bg),
     box: safeColor(product.box, '#8f1834'),
     weight: String(product.weight || ''),
@@ -572,6 +585,7 @@ function productFromStorefrontForm(form, existing = {}, variants = []) {
   if (!name || !description || !Number.isFinite(price) || price < 0) {
     throw new Error('Vui lòng nhập tên, mô tả và giá bán hợp lệ.');
   }
+  const images = normaliseProductImages([data.image, data.images]);
   return {
     ...existing,
     name,
@@ -585,7 +599,8 @@ function productFromStorefrontForm(form, existing = {}, variants = []) {
     ingredients: cleanStorefrontProductText(data.ingredients, 250),
     sku: cleanStorefrontProductText(data.sku, 100),
     variants,
-    image: normaliseImageUrl(data.image),
+    image: images[0] || '',
+    images,
     bg: safeColor(data.bg, safeColor(existing.bg, '#e9c38b')),
     box: safeColor(data.box, safeColor(existing.box, '#8f1834'))
   };
@@ -636,7 +651,8 @@ function openStorefrontProductEditor(id) {
     toast('Không tìm thấy sản phẩm cần chỉnh sửa.');
     return;
   }
-  const existing = found ? {...found, variants: normaliseVariants(found.variants, Math.max(0, Number(found.price) || 0))} : {id: '', name: '', price: '', originalPrice: '', description: '', details: '', label: '', brand: '', image: '', weight: '', ingredients: '', sku: '', variants: [], bg: '#e9c38b', box: '#8f1834'};
+  const existingImages = found ? normaliseProductImages(found.images, found.image) : [];
+  const existing = found ? {...found, image: existingImages[0] || '', images: existingImages, variants: normaliseVariants(found.variants, Math.max(0, Number(found.price) || 0))} : {id: '', name: '', price: '', originalPrice: '', description: '', details: '', label: '', brand: '', image: '', images: [], weight: '', ingredients: '', sku: '', variants: [], bg: '#e9c38b', box: '#8f1834'};
   storefrontAdminLastFocus = document.activeElement;
   let modal = $('#storefrontAdminEditor');
   if (!modal) {
@@ -664,8 +680,9 @@ function openStorefrontProductEditor(id) {
         <label>Tính năng nổi bật<input name="ingredients" value="${escapeHtml(existing.ingredients || '')}"></label>
         <label>Mã sản phẩm<input name="sku" value="${escapeHtml(existing.sku || '')}"></label>
         <fieldset class="product-variant-editor wide"><legend>Lựa chọn sản phẩm</legend><p>Một hình có thể đại diện nhiều loại hàng. Khách sẽ chọn loại trước khi thêm vào giỏ.</p><div class="product-variant-rows" data-variant-rows>${(existing.variants || []).map(storefrontVariantRowMarkup).join('')}</div><button type="button" data-add-variant>+ Thêm lựa chọn</button></fieldset>
-        <label class="wide">Đường dẫn ảnh<input name="image" value="${escapeHtml(existing.image || '')}" placeholder="https://... hoặc /assets/uploads/ten-anh.png"></label>
-        <div class="storefront-admin-upload wide"><label for="storefrontProductImageFile">Tải ảnh từ máy (PNG, JPG, WEBP, GIF hoặc SVG)</label><input id="storefrontProductImageFile" data-storefront-image-file type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,.svg"><button type="button" data-storefront-image-upload>Tải ảnh lên</button></div>
+        <label class="wide">Ảnh chính (URL)<input name="image" value="${escapeHtml(existing.image || '')}" placeholder="https://... hoặc /assets/uploads/ten-anh.png"></label>
+        <label class="wide">Ảnh bổ sung (mỗi dòng một URL)<textarea name="images" rows="4" placeholder="https://.../anh-2.jpg&#10;https://.../anh-3.jpg">${escapeHtml((existing.images || []).slice(1).join('\n'))}</textarea><small>Ảnh hiển thị đúng theo thứ tự nhập; khách có thể bấm nút hoặc vuốt để xem.</small></label>
+        <div class="storefront-admin-upload wide"><label for="storefrontProductImageFile">Tải một hoặc nhiều ảnh từ máy</label><input id="storefrontProductImageFile" data-storefront-image-file type="file" multiple accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,.svg"><button type="button" data-storefront-image-upload>Tải ảnh lên</button></div>
         <label>Màu nền khi chưa có ảnh<input name="bg" type="color" value="${safeColor(existing.bg, '#e9c38b')}"></label>
         <label>Màu hộp khi chưa có ảnh<input name="box" type="color" value="${safeColor(existing.box, '#8f1834')}"></label>
       </div>
@@ -693,10 +710,15 @@ function openStorefrontProductEditor(id) {
       status.textContent = '';
       uploadButton.disabled = true;
       uploadButton.textContent = 'Đang tải...';
-      const url = await uploadStorefrontProductImage(fileInput.files[0]);
-      form.elements.image.value = url;
-      renderStorefrontEditorPreview(preview, url, form.elements.name.value);
-      status.textContent = 'Ảnh đã tải lên. Bấm nút lưu để áp dụng cho sản phẩm.';
+      const files = [...fileInput.files];
+      if (!files.length) throw new Error('Hãy chọn ít nhất một ảnh trước khi tải lên.');
+      const urls = await Promise.all(files.map(uploadStorefrontProductImage));
+      const current = normaliseProductImages([form.elements.image.value, form.elements.images.value]);
+      const merged = normaliseProductImages([...current, ...urls]);
+      form.elements.image.value = merged[0] || '';
+      form.elements.images.value = merged.slice(1).join('\n');
+      renderStorefrontEditorPreview(preview, form.elements.image.value, form.elements.name.value);
+      status.textContent = `${urls.length} ảnh đã tải lên. Bấm nút lưu để áp dụng cho sản phẩm.`;
     } catch (error) {
       status.textContent = error.message;
     } finally {
@@ -856,6 +878,57 @@ function applyLayout(nextLayout = aeonStore.layout()) {
 function productImageMarkup(product, className, placeholderClass, placeholderText) {
   if (!product.image) return `<span class="${placeholderClass}" data-image-placeholder>${placeholderText}</span>`;
   return `<img class="${className}" src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" loading="lazy" data-image-fallback><span class="${placeholderClass}" data-image-placeholder hidden>${placeholderText}</span>`;
+}
+
+function detailGalleryImages(product, preferredImage = '') {
+  return preferredImage
+    ? normaliseProductImages([preferredImage, ...(product.images || [])])
+    : normaliseProductImages(product.images || [], product.image);
+}
+
+function detailGalleryMarkup(product, preferredImage = '') {
+  const images = detailGalleryImages(product, preferredImage);
+  if (!images.length) return productImageMarkup({...product, image: ''}, 'detail-official-image', 'detail-image-placeholder', 'Hình ảnh chính thức<br>đang cập nhật');
+  const controls = images.length > 1
+    ? `<button type="button" class="detail-gallery-control is-prev" data-detail-gallery-step="-1" aria-label="Ảnh trước">‹</button><button type="button" class="detail-gallery-control is-next" data-detail-gallery-step="1" aria-label="Ảnh tiếp theo">›</button><span class="detail-gallery-count" aria-live="polite">1 / ${images.length}</span>`
+    : '';
+  return `<div class="detail-gallery" data-detail-gallery data-gallery-images="${escapeHtml(JSON.stringify(images))}" data-gallery-index="0"><img class="detail-official-image" src="${escapeHtml(images[0])}" alt="${escapeHtml(product.name)} — ảnh 1" data-image-fallback><span class="detail-image-placeholder" data-image-placeholder hidden>Không thể hiển thị ảnh này.</span>${controls}</div>`;
+}
+
+function setDetailGalleryImage(gallery, nextIndex) {
+  let images = [];
+  try { images = JSON.parse(gallery.dataset.galleryImages || '[]'); } catch { images = []; }
+  if (!images.length) return;
+  const index = (nextIndex + images.length) % images.length;
+  const image = gallery.querySelector('.detail-official-image');
+  if (!image) return;
+  gallery.dataset.galleryIndex = String(index);
+  image.hidden = false;
+  image.src = images[index];
+  image.alt = `${gallery.closest('.product-modal')?.querySelector('.detail-copy h2')?.textContent || 'Sản phẩm'} — ảnh ${index + 1}`;
+  gallery.querySelector('[data-image-placeholder]')?.setAttribute('hidden', '');
+  const count = gallery.querySelector('.detail-gallery-count');
+  if (count) count.textContent = `${index + 1} / ${images.length}`;
+}
+
+function bindDetailGallery(scope) {
+  const gallery = scope?.querySelector?.('[data-detail-gallery]');
+  if (!gallery || gallery.dataset.galleryBound) return;
+  gallery.dataset.galleryBound = 'true';
+  gallery.addEventListener('click', event => {
+    const control = event.target.closest('[data-detail-gallery-step]');
+    if (!control) return;
+    event.preventDefault();
+    setDetailGalleryImage(gallery, Number(gallery.dataset.galleryIndex || 0) + Number(control.dataset.detailGalleryStep));
+  });
+  let startX = null;
+  gallery.addEventListener('touchstart', event => { startX = event.changedTouches[0]?.clientX ?? null; }, {passive: true});
+  gallery.addEventListener('touchend', event => {
+    const endX = event.changedTouches[0]?.clientX;
+    if (startX === null || !Number.isFinite(endX) || Math.abs(endX - startX) < 35) return;
+    setDetailGalleryImage(gallery, Number(gallery.dataset.galleryIndex || 0) + (endX < startX ? 1 : -1));
+    startX = null;
+  }, {passive: true});
 }
 
 function attachImageFallbacks(scope = document) {
@@ -1178,8 +1251,9 @@ function updateDetailVariantSelection(product, variantId) {
   modal.dataset.variantId = variant.id;
   const detailArt = modal.querySelector('.detail-art');
   if (detailArt) {
-    detailArt.innerHTML = productImageMarkup({...product, image: variant.image || product.image}, 'detail-official-image', 'detail-image-placeholder', 'Hình ảnh chính thức<br>đang cập nhật');
+    detailArt.innerHTML = detailGalleryMarkup(product, variant.image || product.image);
     attachImageFallbacks(detailArt);
+    bindDetailGallery(detailArt);
   }
   modal.querySelectorAll('[data-detail-variant]').forEach(button => {
     const selected = button.dataset.detailVariant === variant.id;
@@ -1223,18 +1297,17 @@ function openProductDetail(id) {
   const canOrder = canOrderProduct(product);
   const variantLabel = product.variantLabel || 'Phân loại';
   const variantPrompt = `Chọn ${variantLabel.toLocaleLowerCase('vi-VN')}`;
-  const detailText = product.details || product.description || 'Thông tin chi tiết đang được cập nhật.';
+  const detailText = product.details || product.description || 'Thông tin sản phẩm đang được cập nhật.';
   const detailHtml = AEONRichText.render(detailText);
-  $('#productDetailBody').innerHTML = `<div class="detail-art" style="--product-bg:${safeColor(product.bg)}">${productImageMarkup(product, 'detail-official-image', 'detail-image-placeholder', 'Hình ảnh chính thức<br>đang cập nhật')}</div>
-    <div class="detail-copy">${product.brand ? `<p class="detail-brand">${escapeHtml(product.brand)}</p>` : ''}${product.label ? `<p class="eyebrow">${escapeHtml(product.label)}</p>` : ''}<h2>${escapeHtml(product.name)}</h2><p class="detail-price" id="detailPrice">${priceLabel(product)}</p>${variants ? `<section class="detail-variant-picker" aria-labelledby="detailVariantLabel"><div class="detail-variant-head"><span id="detailVariantLabel">${escapeHtml(variantPrompt)}</span><b id="detailVariantStatus">Vui lòng chọn một lựa chọn</b></div><div class="detail-variant-options" role="group" aria-label="${escapeHtml(variantLabel)}">${product.variants.map(variant => `<button type="button" data-detail-variant="${escapeHtml(variant.id)}" aria-pressed="false"><span>${escapeHtml(variant.name)}</span><strong>${variant.price > 0 ? fmt(variant.price) : 'Liên hệ'}</strong></button>`).join('')}</div></section>` : ''}<p class="detail-meta" id="detailSku"${product.sku ? '' : ' hidden'}>${product.sku ? `Mã sản phẩm: ${escapeHtml(product.sku)}` : ''}</p><p class="detail-description">${escapeHtml(detailText)}</p><dl><div><dt>Kích thước</dt><dd>${escapeHtml(product.weight || 'Thông tin đang cập nhật')}</dd></div><div><dt>Tính năng nổi bật</dt><dd>${escapeHtml(product.ingredients || 'Thông tin đang cập nhật')}</dd></div></dl><div class="detail-actions">${variants ? `<button class="button primary" data-detail-add="${escapeHtml(product.id)}" id="detailAdd" disabled>${escapeHtml(variantPrompt)}</button><button class="quantity-button" data-detail-qty="-1" aria-label="Giảm số lượng">−</button><b id="detailQty">1</b><button class="quantity-button" data-detail-qty="1" aria-label="Tăng số lượng">+</button>` : canOrder ? `<button class="button primary" data-detail-add="${escapeHtml(product.id)}" id="detailAdd">Thêm vào giỏ <span>→</span></button><button class="quantity-button" data-detail-qty="-1" aria-label="Giảm số lượng">−</button><b id="detailQty">1</b><button class="quantity-button" data-detail-qty="1" aria-label="Tăng số lượng">+</button>` : '<a class="button primary" href="tel:0327747337">Liên hệ tư vấn <span>→</span></a>'}</div></div>`;
-  const detailDescription = $('#productDetailBody').querySelector('.detail-description');
-  detailDescription.outerHTML = '<div class="detail-description richtext-output">' + detailHtml + '</div>';
+  $('#productDetailBody').innerHTML = `<div class="detail-art" style="--product-bg:${safeColor(product.bg)}">${detailGalleryMarkup(product)}</div>
+    <div class="detail-copy">${product.brand ? `<p class="detail-brand">${escapeHtml(product.brand)}</p>` : ''}${product.label ? `<p class="eyebrow">${escapeHtml(product.label)}</p>` : ''}<h2>${escapeHtml(product.name)}</h2><p class="detail-price" id="detailPrice">${priceLabel(product)}</p>${variants ? `<section class="detail-variant-picker" aria-labelledby="detailVariantLabel"><div class="detail-variant-head"><span id="detailVariantLabel">${escapeHtml(variantPrompt)}</span><b id="detailVariantStatus">Vui lòng chọn một lựa chọn</b></div><div class="detail-variant-options" role="group" aria-label="${escapeHtml(variantLabel)}">${product.variants.map(variant => `<button type="button" data-detail-variant="${escapeHtml(variant.id)}" aria-pressed="false"><span>${escapeHtml(variant.name)}</span><strong>${variant.price > 0 ? fmt(variant.price) : 'Liên hệ'}</strong></button>`).join('')}</div></section>` : ''}<p class="detail-meta" id="detailSku"${product.sku ? '' : ' hidden'}>${product.sku ? `Mã sản phẩm: ${escapeHtml(product.sku)}` : ''}</p><div class="detail-description richtext-output">${detailHtml}</div><dl><div><dt>Tính năng nổi bật</dt><dd>${escapeHtml(product.ingredients || 'Thông tin đang cập nhật')}</dd></div><div><dt>Kích thước</dt><dd>${escapeHtml(product.weight || 'Thông tin đang cập nhật')}</dd></div></dl><div class="detail-actions">${variants ? `<button class="button primary" data-detail-add="${escapeHtml(product.id)}" id="detailAdd" disabled>${escapeHtml(variantPrompt)}</button><button class="quantity-button" data-detail-qty="-1" aria-label="Giảm số lượng">−</button><b id="detailQty">1</b><button class="quantity-button" data-detail-qty="1" aria-label="Tăng số lượng">+</button>` : canOrder ? `<button class="button primary" data-detail-add="${escapeHtml(product.id)}" id="detailAdd">Thêm vào giỏ <span>→</span></button><button class="quantity-button" data-detail-qty="-1" aria-label="Giảm số lượng">−</button><b id="detailQty">1</b><button class="quantity-button" data-detail-qty="1" aria-label="Tăng số lượng">+</button>` : '<a class="button primary" href="tel:0327747337">Liên hệ tư vấn <span>→</span></a>'}</div></div>`;
   modal.dataset.id = id;
   modal.dataset.qty = '1';
   modal.dataset.variantId = '';
   modal.classList.add('show');
   modal.setAttribute('aria-hidden', 'false');
   attachImageFallbacks($('#productDetailBody'));
+  bindDetailGallery($('#productDetailBody'));
   modal.querySelector('.modal-close').focus();
 }
 

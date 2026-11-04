@@ -21,7 +21,7 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({
 const money = value => `${new Intl.NumberFormat('vi-VN').format(value)} ₫`;
 let tab = 'dashboard';
 const ADMIN_PERMISSION_LABELS = {
-  products: 'Sản phẩm & giá',
+  products: 'Danh mục & logo',
   interface: 'Nội dung, giao diện & banner',
   quotes: 'File báo giá',
   brands: 'Thương hiệu',
@@ -120,6 +120,15 @@ function normaliseImageUrl(value) {
   if (/^https?:\/\//i.test(url) || url.startsWith('/')) return url;
   if (/^[a-z][a-z\d+.-]*:/i.test(url)) return '';
   return `/${url.replace(/^\.?\//, '')}`;
+}
+
+function normaliseProductImages(value, primaryImage = '') {
+  const rawImages = (Array.isArray(value) ? value : [value]).flatMap(item => String(item ?? '').split(/[\r\n,]+/));
+  const images = rawImages.map(normaliseImageUrl).filter(Boolean);
+  const legacyImage = normaliseImageUrl(primaryImage);
+  if (!images.length && legacyImage) images.push(legacyImage);
+  else if (legacyImage && !images.includes(legacyImage)) images.push(legacyImage);
+  return [...new Set(images)].slice(0, 12);
 }
 
 function newProductVariantId() {
@@ -565,7 +574,7 @@ function render() {
   if (!isAuthed()) return;
   const labels = {
     dashboard: 'Tổng quan',
-    products: 'Sản phẩm & giá',
+    products: 'Danh mục & logo',
     interface: 'Giao diện',
     customers: 'Khách hàng',
     accounts: 'Tài khoản & phân quyền'
@@ -578,13 +587,17 @@ function render() {
   $('#adminTitle').textContent = labels[tab];
   const panel = $('#adminPanel');
   if (tab === 'dashboard') return dashboard(panel);
-  if (tab === 'products') return productPanel(panel);
+  if (tab === 'products') {
+    productPanel(panel);
+    assetPanel(panel, {logo: true, hero: false});
+    return;
+  }
   if (tab === 'interface') {
     panel.innerHTML = '';
     if (hasAdminPermission('interface')) interfacePanel(panel);
     if (hasAdminPermission('brands')) brandSettingsPanel(panel);
     if (hasAdminPermission('interface') || hasAdminPermission('quotes')) {
-      assetPanel(panel);
+      assetPanel(panel, {logo: false, hero: true});
       if (!hasAdminPermission('interface')) panel.querySelectorAll('.asset-editor:not(.quote-file-editor)').forEach(section => section.remove());
       if (!hasAdminPermission('quotes')) panel.querySelector('.quote-file-editor')?.remove();
     }
@@ -694,7 +707,7 @@ function dashboard(panel) {
   const revenue = orders.reduce((sum, order) => sum + order.total, 0);
   const products = aeonStore.products();
   const shortcuts = [
-    {tab:'products', label:'Quản lý sản phẩm', detail:'Thêm, sửa, sắp xếp và nhập danh sách'},
+    {tab:'products', label:'Danh mục & logo', detail:'Thêm, sửa, sắp xếp sản phẩm và quản lý logo độc lập'},
     hasAdminPermission('interface') && {tab:'interface', label:'Điều chỉnh giao diện', detail:'Banner, nội dung và bố cục trang chủ'},
     hasAdminPermission('customers') && {tab:'customers', label:'Xem khách hàng', detail:'Đơn hàng, PDF và dữ liệu đã đồng bộ'}
   ].filter(Boolean);
@@ -1019,7 +1032,7 @@ function renderImportPreview(target, analysis, products) {
 function productPanel(panel) {
   const products = aeonStore.products();
   panel.innerHTML = `
-    <section class="admin-section-intro"><p class="eyebrow">DANH MỤC SẢN PHẨM</p><h2>Sản phẩm & giá</h2><p>Thêm, sửa, sắp xếp danh sách hoặc nhập nhanh từ file. Các thay đổi được cập nhật ngay tại cửa hàng sau khi lưu.</p></section>
+    <section class="admin-section-intro"><p class="eyebrow">DANH MỤC SẢN PHẨM</p><h2>Danh mục & logo</h2><p>Thêm, sửa, sắp xếp danh sách sản phẩm và quản lý logo. Các thay đổi này độc lập với phần giao diện.</p></section>
     <div class="panel-action admin-toolbar"><p>Chọn một thao tác để bắt đầu.</p><div class="panel-action-buttons"><button class="secondary-button" id="downloadCurrentProducts" type="button">Tải danh mục có ảnh</button><button class="secondary-button" id="downloadProductTemplate" type="button">Tải file mẫu</button><button class="secondary-button" id="importProducts" type="button">Tải lên danh sách</button><button class="button primary" id="newProduct">+ Thêm sản phẩm</button></div></div>
     <section class="admin-card import-products" id="productImportPanel" hidden aria-labelledby="productImportTitle">
       <div class="import-intro"><div><p class="eyebrow">NHẬP DANH MỤC</p><h2 id="productImportTitle">Tải lên danh sách sản phẩm</h2><p>Excel có thể chứa nhiều dòng phân loại cho cùng một sản phẩm. Hệ thống sẽ gom theo ID, mã sản phẩm hoặc tên + thương hiệu để bạn kiểm tra trước khi lưu.</p></div><button class="import-close" type="button" id="closeProductImport" aria-label="Đóng khu vực nhập tệp">×</button></div>
@@ -1122,7 +1135,9 @@ function openProductEditor(id, options = {}) {
   const onDeleted = options.onDeleted || onSaved;
   const onCancel = options.onCancel || (() => editorMount.replaceChildren());
   const currentProducts = aeonStore.products();
-  const existing = currentProducts.find(product => product.id === id) || {
+  const foundProduct = currentProducts.find(product => product.id === id);
+  const foundImages = foundProduct ? normaliseProductImages(foundProduct.images, foundProduct.image) : [];
+  const existing = foundProduct ? {...foundProduct, image: foundImages[0] || '', images: foundImages} : {
     id: `sp-${Date.now()}`,
     name: '',
     description: '',
@@ -1131,6 +1146,7 @@ function openProductEditor(id, options = {}) {
     brand: '',
     label: '',
     image: '',
+    images: [],
     details: '',
     weight: '',
     ingredients: '',
@@ -1154,7 +1170,8 @@ function openProductEditor(id, options = {}) {
     data.price = data.variants.length ? Math.min(...data.variants.map(variant => variant.price)) : Number(data.price);
     data.originalPrice = Number(data.originalPrice) > data.price ? Math.round(Number(data.originalPrice)) : 0;
     if (!Number.isFinite(data.price) || data.price < 0) throw new Error('Giá bán không hợp lệ.');
-    data.image = normaliseImageUrl(data.image);
+    data.images = normaliseProductImages([data.image, data.images]);
+    data.image = data.images[0] || '';
     data.brand = normaliseAeonBrand(data.brand) || inferAeonBrandFromProductName(data.name);
     let all = [...aeonStore.products()];
     try {
@@ -1167,6 +1184,8 @@ function openProductEditor(id, options = {}) {
     const stored = position < 0 ? null : all[position];
     // A stale admin tab must not erase an image uploaded in another tab.
     if (!data.image && stored?.image) data.image = normaliseImageUrl(stored.image);
+    data.images = normaliseProductImages([data.image || stored?.image, data.images]);
+    data.image = data.images[0] || '';
     if (position < 0) {
       const insertAt = Number.isInteger(requestedPosition)
         ? Math.max(0, Math.min(requestedPosition, all.length))
@@ -1198,8 +1217,9 @@ function openProductEditor(id, options = {}) {
           <label class="image-path">Tên nhóm phân loại<input name="variantLabel" value="${escapeHtml(existing.variantLabel || '')}" placeholder="Ví dụ: Màu sắc, Kích thước, Hương vị"><small>Được hiển thị khi sản phẩm có nhiều lựa chọn.</small></label>
           <fieldset class="product-variant-editor image-path"><legend>Phân loại sản phẩm</legend><p>Mỗi màu sắc, kích thước hoặc hương vị có thể có giá và mã SKU riêng.</p><div class="product-variant-rows" data-variant-rows>${editorVariants.map(productVariantRowMarkup).join('')}</div><button class="secondary-button" type="button" data-add-variant>+ Thêm phân loại</button></fieldset>
           <div class="richtext-field image-path"><span class="richtext-label">Chi tiết sản phẩm</span>${AEONRichText.editorMarkup({name: 'details', value: existing.details || '', rows: 8, placeholder: 'Thông tin hiển thị trong trang chi tiết'})}</div>
-          <label class="image-path">Đường dẫn ảnh<input name="image" value="${escapeHtml(existing.image || '')}" placeholder="https://... hoặc /assets/uploads/ten-anh.png"></label>
-          <div class="upload-field image-path"><label for="productImageFile">Tải ảnh từ máy (lưu tại /assets/uploads)</label><input id="productImageFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,.svg"><button class="secondary-button" id="uploadProductImage" type="button">Tải ảnh lên</button></div>
+          <label class="image-path">Ảnh chính (URL)<input name="image" value="${escapeHtml(existing.image || '')}" placeholder="https://... hoặc /assets/uploads/ten-anh.png"></label>
+          <label class="image-path">Ảnh bổ sung (mỗi dòng một URL)<textarea name="images" rows="4" placeholder="https://.../anh-2.jpg&#10;https://.../anh-3.jpg">${escapeHtml(normaliseProductImages(existing.images, existing.image).slice(1).join('\n'))}</textarea><small>Ảnh hiển thị đúng theo thứ tự nhập; khách có thể bấm nút hoặc vuốt để xem.</small></label>
+          <div class="upload-field image-path"><label for="productImageFile">Tải một hoặc nhiều ảnh từ máy</label><input id="productImageFile" type="file" multiple accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,.svg"><button class="secondary-button" id="uploadProductImage" type="button">Tải ảnh lên</button></div>
           <label>Màu nền khi chưa có ảnh<input name="bg" type="color" value="${existing.bg}"></label>
           <label>Màu hộp khi chưa có ảnh<input name="box" type="color" value="${existing.box}"></label>
         </div>
@@ -1224,10 +1244,13 @@ function openProductEditor(id, options = {}) {
     const button = $('#uploadProductImage');
     try {
       setBusy(button, true, 'Đang tải...', 'Tải ảnh lên');
-      const url = await uploadOfficialImage($('#productImageFile').files[0]);
-      if (!url) throw new Error('Hãy chọn ảnh trước khi tải lên.');
-      form.elements.image.value = url;
-      setPreview($('#productPreview'), url, 'Chưa chọn ảnh sản phẩm');
+      const files = [...$('#productImageFile').files];
+      if (!files.length) throw new Error('Hãy chọn ít nhất một ảnh trước khi tải lên.');
+      const urls = await Promise.all(files.map(uploadOfficialImage));
+      const merged = normaliseProductImages([form.elements.image.value || urls[0], form.elements.images.value, ...urls]);
+      form.elements.image.value = merged[0] || '';
+      form.elements.images.value = merged.slice(1).join('\n');
+      setPreview($('#productPreview'), form.elements.image.value, 'Chưa chọn ảnh sản phẩm');
       if (form.checkValidity()) {
         await saveProduct(form);
         toastAdmin('Ảnh sản phẩm đã được tải lên và đồng bộ.');
@@ -1282,13 +1305,10 @@ function interfacePanel(panel) {
   panel.innerHTML = `
     <section class="admin-card editor">
       <p class="eyebrow">NỘI DUNG TRANG CHỦ</p>
-      <h2>Nội dung & nhận diện</h2>
-      <p class="admin-card-description">Những nội dung này xuất hiện ở trang chủ. Dùng xuống dòng để ngắt hàng tiêu đề hoặc nội dung ưu đãi.</p>
+      <h2>Nội dung trang chủ</h2>
+      <p class="admin-card-description">Những nội dung này xuất hiện ở trang chủ. Logo và danh mục sản phẩm được quản lý riêng trong mục “Danh mục & logo”, nên sẽ không bị thay đổi tại đây.</p>
       <form id="uiForm">
         <div class="admin-form-grid one">
-          <label>Tên logo<input name="logoText" maxlength="32" required value="${escapeHtml(ui.logoText)}" placeholder="Ví dụ: AEON"></label>
-          <label>Dòng phụ logo<textarea name="logoSubtitle" maxlength="80" rows="2" placeholder="Ví dụ: BÌNH DƯƠNG&#10;NEW CITY">${escapeHtml(ui.logoSubtitle || '')}</textarea><small>Có thể nhấn Enter để xuống dòng.</small></label>
-          <label>Kiểu hiển thị logo<select name="logoMode"><option value="text"${ui.logoMode === 'text' ? ' selected' : ''}>Logo chữ</option><option value="image"${ui.logoMode === 'image' ? ' selected' : ''}>Chỉ dùng ảnh logo</option><option value="image-subtitle"${ui.logoMode === 'image-subtitle' ? ' selected' : ''}>Ảnh logo và dòng phụ</option></select></label>
           <label>Hiển thị khu vực hero<select name="heroDisplayMode"><option value="content-image"${normaliseHeroDisplayMode(ui.heroDisplayMode) === 'content-image' ? ' selected' : ''}>Hiển thị nội dung và hình ảnh</option><option value="image-only"${normaliseHeroDisplayMode(ui.heroDisplayMode) === 'image-only' ? ' selected' : ''}>Chỉ hiển thị hình ảnh</option></select><small>Ảnh banner phủ toàn bộ chiều cao hero và chừa lề theo giao diện.</small></label>
           <label>Nhãn chiến dịch<input name="eyebrow" required value="${escapeHtml(ui.eyebrow)}"></label>
           <label>Tiêu đề hero<textarea name="title" required rows="2">${escapeHtml(ui.title)}</textarea></label>
@@ -1315,9 +1335,6 @@ function interfacePanel(panel) {
         ...aeonStore.ui(),
         ...latestUi,
         ...values,
-        logoText: cleanLogoText(values.logoText, AEON_DEFAULT_UI.logoText, 32),
-        logoSubtitle: cleanLogoText(values.logoSubtitle, '', 80, true),
-        logoMode: normaliseLogoMode(values.logoMode),
         heroDisplayMode: normaliseHeroDisplayMode(values.heroDisplayMode),
         promotionText: window.AEONPromotionRichText?.clean(values.promotionText, 6000) || String(values.promotionText || '').replace(/\r\n?/g, '\n').trim().slice(0, 6000)
       };
@@ -1380,7 +1397,9 @@ function brandSettingsPanel(panel) {
     </section>`);
 }
 
-function assetPanel(panel) {
+function assetPanel(panel, options = {}) {
+  const showLogo = options.logo !== false;
+  const showHero = options.hero !== false;
   const ui = aeonStore.ui();
   const sourceImages = [];
   aeonStore.products().forEach(product => {
@@ -1388,12 +1407,15 @@ function assetPanel(panel) {
     if (image && !sourceImages.some(item => item.image === image)) sourceImages.push({image, name: product.name || 'Ảnh sản phẩm'});
   });
 
-  panel.insertAdjacentHTML('beforeend', `
+  if (showLogo) panel.insertAdjacentHTML('beforeend', `
     <section class="admin-card editor asset-editor logo-asset-editor">
       <p class="eyebrow">NHẬN DIỆN THƯƠNG HIỆU</p>
-      <h2>Ảnh logo</h2>
-      <p>Tải logo từ máy hoặc dán đường dẫn ảnh online. Nếu có ảnh logo, hệ thống sẽ dùng ảnh này trên trang bán hàng và trang quản trị.</p>
+      <h2>Logo cửa hàng</h2>
+      <p>Logo được quản lý riêng với giao diện. Thay đổi theme, màu sắc hoặc bố cục sẽ không làm thay đổi logo này.</p>
       <form id="logoAssetForm">
+        <label>Tên logo<input name="logoText" maxlength="32" required value="${escapeHtml(ui.logoText)}" placeholder="Ví dụ: AEON"></label>
+        <label>Dòng phụ logo<textarea name="logoSubtitle" maxlength="80" rows="2" placeholder="Ví dụ: BÌNH DƯƠNG&#10;NEW CITY">${escapeHtml(ui.logoSubtitle || '')}</textarea><small>Có thể nhấn Enter để xuống dòng.</small></label>
+        <label>Kiểu hiển thị logo<select name="logoMode"><option value="text"${ui.logoMode === 'text' ? ' selected' : ''}>Logo chữ</option><option value="image"${ui.logoMode === 'image' ? ' selected' : ''}>Chỉ dùng ảnh logo</option><option value="image-subtitle"${ui.logoMode === 'image-subtitle' ? ' selected' : ''}>Ảnh logo và dòng phụ</option></select></label>
         <label>Đường dẫn ảnh logo<input name="logoImage" value="${escapeHtml(ui.logoImage || '')}" placeholder="https://... hoặc /assets/uploads/logo.png"></label>
         <div class="upload-field"><label for="logoImageFile">Tải ảnh logo từ máy (PNG, JPG, WEBP, GIF hoặc SVG)</label><input id="logoImageFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,.svg"><button class="secondary-button" id="uploadLogoImage" type="button">Tải và dùng logo</button></div>
         <div class="asset-preview logo-preview" id="logoPreview" aria-live="polite"></div>
@@ -1401,6 +1423,7 @@ function assetPanel(panel) {
       </form>
     </section>`);
 
+  if (showLogo) {
   const logoForm = $('#logoAssetForm');
   setPreview($('#logoPreview'), ui.logoImage, 'Chưa chọn ảnh logo');
   logoForm.elements.logoImage.addEventListener('input', () => setPreview($('#logoPreview'), logoForm.elements.logoImage.value, 'Chưa chọn ảnh logo'));
@@ -1412,8 +1435,8 @@ function assetPanel(panel) {
       const url = await uploadOfficialImage($('#logoImageFile').files[0]);
       if (!url) throw new Error('Hãy chọn ảnh logo trước khi tải lên.');
       logoForm.elements.logoImage.value = url;
-      const currentMode = normaliseLogoMode(aeonStore.ui().logoMode);
-      const saved = await saveLogoSettings({logoImage: url, logoMode: currentMode === 'text' ? 'image' : currentMode});
+      const currentMode = normaliseLogoMode(logoForm.elements.logoMode.value);
+      const saved = await saveLogoSettings({logoText: logoForm.elements.logoText.value, logoSubtitle: logoForm.elements.logoSubtitle.value, logoImage: url, logoMode: currentMode === 'text' ? 'image' : currentMode});
       logoForm.elements.logoImage.value = saved.logoImage;
       setPreview($('#logoPreview'), saved.logoImage, 'Chưa chọn ảnh logo');
       toastAdmin('Đã lưu ảnh logo và đồng bộ website.');
@@ -1428,8 +1451,8 @@ function assetPanel(panel) {
     event.preventDefault();
     try {
       const image = normaliseImageUrl(logoForm.elements.logoImage.value);
-      const currentMode = normaliseLogoMode(aeonStore.ui().logoMode);
-      const saved = await saveLogoSettings({logoImage: image, logoMode: image && currentMode === 'text' ? 'image' : currentMode});
+      const currentMode = normaliseLogoMode(logoForm.elements.logoMode.value);
+      const saved = await saveLogoSettings({logoText: logoForm.elements.logoText.value, logoSubtitle: logoForm.elements.logoSubtitle.value, logoImage: image, logoMode: image && currentMode === 'text' ? 'image' : currentMode});
       logoForm.elements.logoImage.value = saved.logoImage;
       setPreview($('#logoPreview'), saved.logoImage, 'Chưa chọn ảnh logo');
       toastAdmin('Đã lưu ảnh logo và đồng bộ website.');
@@ -1440,7 +1463,7 @@ function assetPanel(panel) {
 
   $('#clearLogoImage').onclick = async () => {
     try {
-      await saveLogoSettings({logoImage: ''});
+      await saveLogoSettings({logoText: logoForm.elements.logoText.value, logoSubtitle: logoForm.elements.logoSubtitle.value, logoImage: ''});
       logoForm.elements.logoImage.value = '';
       setPreview($('#logoPreview'), '', 'Chưa chọn ảnh logo');
       toastAdmin('Đã bỏ ảnh logo. Website sẽ dùng logo chữ.');
@@ -1448,6 +1471,9 @@ function assetPanel(panel) {
       toastAdmin(error.message);
     }
   };
+  }
+
+  if (!showHero) return;
 
   panel.insertAdjacentHTML('beforeend', `
     <section class="admin-card editor asset-editor">

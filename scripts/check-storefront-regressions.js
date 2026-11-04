@@ -15,6 +15,8 @@ const checks = [
   ['data.js', "'giaKhuyenMai', 'giaKM'", 'Thiếu nhận diện các cột giá khuyến mãi khi nhập dữ liệu.'],
   ['product-import.js', 'nhan hieu', 'File nhập sản phẩm phải nhận diện cột Nhãn hiệu.'],
   ['server.js', 'aeon-product-tombstones', 'Thiếu khóa chống khôi phục sản phẩm đã xóa.']
+  ,['admin.js', "assetPanel(panel, {logo: true, hero: false});", 'Logo phải được quản lý riêng cùng danh mục sản phẩm.']
+  ,['admin.js', "await saveShared('aeon-layout', {...layout, ...values});", 'Lưu giao diện phải chỉ ghi khóa bố cục, không ghi danh mục sản phẩm.']
 ];
 
 const failures = checks.filter(([file, marker]) => !read(file).includes(marker));

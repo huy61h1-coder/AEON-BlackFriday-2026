@@ -32,6 +32,51 @@
   width: auto !important;
 }
 
+.detail-gallery {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.detail-gallery .detail-official-image {
+  width: 100%;
+  height: 100%;
+}
+
+.detail-gallery-control {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  translate: 0 -50%;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(18, 18, 18, .72);
+  color: #fff;
+  font: 400 32px/1 Arial, sans-serif;
+  cursor: pointer;
+}
+
+.detail-gallery-control.is-prev { left: 14px; }
+.detail-gallery-control.is-next { right: 14px; }
+.detail-gallery-count {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 2;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(18, 18, 18, .72);
+  color: #fff;
+  font: 700 10px 'Be Vietnam Pro', sans-serif;
+}
+
 .detail-copy {
   grid-column: 2;
   grid-row: 1;
@@ -81,15 +126,20 @@
   #productDetailBody {
     min-height: 0;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 250px auto;
+    grid-template-rows: 190px auto;
   }
 
   .detail-art {
     grid-column: 1;
     grid-row: 1;
-    min-height: 250px;
-    height: 250px;
+    min-height: 190px;
+    height: 190px;
   }
+
+  .detail-gallery-control { width: 32px; height: 32px; font-size: 27px; }
+  .detail-gallery-control.is-prev { left: 9px; }
+  .detail-gallery-control.is-next { right: 9px; }
+  .detail-gallery-count { right: 9px; bottom: 9px; }
 
   .detail-copy {
     grid-column: 1;
