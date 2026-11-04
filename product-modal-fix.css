@@ -6,7 +6,9 @@
 .product-modal-card {
   width: min(1040px, calc(100vw - 32px));
   max-width: none;
-  min-height: 440px;
+  /* Keep the media frame useful, but do not reserve a large empty tail below
+     the cart action when the product has a long feature list. */
+  min-height: 360px;
   max-height: 88dvh;
   display: block !important;
   overflow: auto;
@@ -15,7 +17,7 @@
 
 #productDetailBody {
   min-width: 0;
-  min-height: 440px;
+  min-height: 360px;
   display: grid;
   /* Give the product artwork more room while preserving enough space for options. */
   grid-template-columns: minmax(340px, 52%) minmax(0, 48%);
@@ -27,7 +29,7 @@
   grid-column: 1;
   grid-row: 1;
   min-width: 0 !important;
-  min-height: 440px;
+  min-height: 360px;
   height: 100%;
   width: auto !important;
 }
@@ -82,7 +84,7 @@
   grid-row: 1;
   min-width: 0 !important;
   width: auto !important;
-  padding: 28px 34px 24px;
+  padding: 20px 28px 10px;
   overflow-wrap: anywhere;
 }
 
@@ -106,15 +108,16 @@
 }
 
 .detail-copy dl {
-  margin: 14px 0 16px;
+  margin: 9px 0 10px;
 }
 
-.detail-copy > p:not(.eyebrow) { margin: 10px 0 !important; }
-.detail-copy dl div { padding: 7px 0; }
+.detail-copy > p:not(.eyebrow) { margin: 7px 0 !important; }
+.detail-copy dl div { padding: 5px 0; }
 .detail-copy dd { line-height: 1.45; white-space: pre-line; }
 
 .detail-actions {
-  padding-top: 3px;
+  padding: 0;
+  margin: 0;
 }
 
 @media (max-width: 760px) {
@@ -157,7 +160,7 @@
   .detail-copy {
     grid-column: 1;
     grid-row: 2;
-    padding: 18px 18px 12px;
+    padding: 14px 16px 6px;
   }
 
   .detail-copy h2 {
@@ -165,9 +168,9 @@
     margin-bottom: 6px;
   }
 
-  .detail-copy dl { margin: 9px 0 10px; }
-  .detail-copy dl div { padding: 5px 0; }
-  .detail-copy > p:not(.eyebrow) { margin: 6px 0 !important; }
+  .detail-copy dl { margin: 7px 0 7px; }
+  .detail-copy dl div { padding: 4px 0; }
+  .detail-copy > p:not(.eyebrow) { margin: 4px 0 !important; }
   .detail-actions { padding-top: 0; }
 
   .modal-close {
