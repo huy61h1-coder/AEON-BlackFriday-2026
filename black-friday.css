@@ -6,6 +6,7 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 .site-header nav a,.cart-button,.menu-toggle,.brand small { color:var(--bf-white)!important; }
 .site-header { position:relative; }
 .site-header nav { display:none!important; }
+.site-header nav.show { display:flex!important; }
 .site-header .menu-toggle { display:block!important; order:4; margin-left:12px; font-size:26px; line-height:1; }
 .site-header nav a:hover,.cart-button:hover { color:var(--bf-gold)!important; }
 .brand { color:var(--bf-white)!important; }
