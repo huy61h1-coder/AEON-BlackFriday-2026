@@ -260,6 +260,18 @@ const deployedStorefrontState = window.AEON_DEPLOYED_STOREFRONT_STATE && typeof 
 const initialStorefrontState = Object.keys(serverStorefrontState).length
   ? serverStorefrontState
   : deployedStorefrontState;
+// Never let the legacy pink storefront layout override the current Black Friday
+// theme on the public/unauthenticated first paint.
+const initialLayout = initialStorefrontState['aeon-layout'];
+const legacyPinkLayout = initialLayout && ['#ffd1d1', '#f5e5e5'].includes(String(initialLayout.pageBackgroundColor || '').toLowerCase());
+if (legacyPinkLayout && deployedStorefrontState['aeon-layout']) {
+  initialStorefrontState['aeon-layout'] = {...deployedStorefrontState['aeon-layout'], ...initialLayout,
+    pageBackgroundColor: deployedStorefrontState['aeon-layout'].pageBackgroundColor,
+    sectionBackgroundColor: deployedStorefrontState['aeon-layout'].sectionBackgroundColor,
+    accentColor: deployedStorefrontState['aeon-layout'].accentColor,
+    accentDarkColor: deployedStorefrontState['aeon-layout'].accentDarkColor,
+    textColor: deployedStorefrontState['aeon-layout'].textColor};
+}
 ['aeon-products', 'aeon-ui', 'aeon-layout', 'aeon-brands'].forEach(key => {
   if (Object.hasOwn(initialStorefrontState, key)) {
     localStorage.setItem(key, JSON.stringify(initialStorefrontState[key]));
