@@ -292,22 +292,13 @@ mainNav[2].textContent = 'Đặt hàng';
 $('.hero-actions .text-link')?.remove();
 
 function renderStorefrontAdminTools() {
-  const active = isStorefrontAdmin();
-  document.body.classList.toggle('admin-preview', active);
+  // The selling page is permanently a public catalogue.  Management actions
+  // belong in admin.html so an authenticated session can never switch this
+  // page back to the legacy inline-editor layout.
+  document.body.classList.remove('admin-preview');
   const existing = $('#storefrontAdminToolbar');
-  if (!active) {
-    existing?.remove();
-    closeStorefrontProductEditor();
-    return;
-  }
-  if (existing) return;
-
-  const toolbarAnchor = catalogSection.querySelector('.brand-directory') || catalogSection.querySelector('.products');
-  if (!toolbarAnchor) return;
-  toolbarAnchor.insertAdjacentHTML('beforebegin', `<div class="storefront-admin-toolbar" id="storefrontAdminToolbar" aria-label="Chế độ quản trị sản phẩm">
-    <div><span class="storefront-admin-status">● Chế độ quản trị</span><small>Bạn đang chỉnh sửa trực tiếp trên trang bán hàng.</small></div>
-    <div class="storefront-admin-toolbar-actions"><button type="button" data-storefront-new>+ Thêm sản phẩm</button><button type="button" data-storefront-appearance>Tùy chỉnh giao diện</button><a href="admin.html">Quản trị đầy đủ</a><button type="button" class="storefront-admin-logout" data-storefront-logout>Đăng xuất</button></div>
-  </div>`);
+  existing?.remove();
+  closeStorefrontProductEditor();
 }
 
 function formatBannerRatio(value) {
@@ -457,11 +448,9 @@ function openStorefrontAppearance() {
 }
 
 function storefrontProductAdminActions(product) {
-  if (!isStorefrontAdmin()) return '';
-  return `<div class="storefront-product-admin-actions" aria-label="Thao tác quản trị cho ${escapeHtml(product.name)}">
-    <button type="button" data-storefront-edit="${escapeHtml(product.id)}" aria-label="Chỉnh sửa ${escapeHtml(product.name)}">Sửa</button>
-    <button type="button" class="storefront-product-delete" data-storefront-delete="${escapeHtml(product.id)}" aria-label="Xóa ${escapeHtml(product.name)}">×</button>
-  </div>`;
+  // Keep direct product editing out of the public catalogue.  Product data is
+  // unchanged; editing is available from admin.html.
+  return '';
 }
 
 function cleanStorefrontProductText(value, limit = 1000, preserveLines = false) {
@@ -1075,7 +1064,7 @@ function renderProducts() {
   const visibleProducts = sortCatalogProducts(filteredProducts);
   updateCatalogResult(visibleProducts.length, products.length);
   grid.dataset.productCount = String(visibleProducts.length);
-  grid.classList.toggle('storefront-admin-grid', isStorefrontAdmin());
+  grid.classList.remove('storefront-admin-grid');
 
   if (!visibleProducts.length) {
     const emptyContent = products.length
