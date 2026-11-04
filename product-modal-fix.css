@@ -125,6 +125,7 @@
   .product-modal-card {
     width: 100%;
     min-height: 0;
+    height: auto;
     max-height: 92dvh;
   }
 
@@ -156,12 +157,18 @@
   .detail-copy {
     grid-column: 1;
     grid-row: 2;
-    padding: 30px 22px 28px;
+    padding: 18px 18px 12px;
   }
 
   .detail-copy h2 {
     font-size: 17px;
+    margin-bottom: 6px;
   }
+
+  .detail-copy dl { margin: 9px 0 10px; }
+  .detail-copy dl div { padding: 5px 0; }
+  .detail-copy > p:not(.eyebrow) { margin: 6px 0 !important; }
+  .detail-actions { padding-top: 0; }
 
   .modal-close {
     z-index: 4;
