@@ -846,8 +846,8 @@ async function saveImportedProducts(drafts) {
       label: cleanTextImport(draft.label, 100),
       weight: cleanTextImport(draft.weight, 100),
       ingredients: cleanTextImport(draft.ingredients, 300),
-      details: AEONRichText.clean(draft.details || description, 3000),
-      image: normaliseImageUrl(draft.image || existing?.image || ''),
+      image: normaliseProductImages(draft.images || draft.image || existing?.images || existing?.image || '')[0] || '',
+      images: normaliseProductImages(draft.images || draft.image || existing?.images || existing?.image || ''),
       variantLabel: variants.length
         ? cleanTextImport(draft.hasVariantColumns ? draft.variantLabel : existing?.variantLabel, 100) || 'Phân loại'
         : '',
@@ -960,7 +960,6 @@ function renderImportPreview(target, analysis, products) {
           <label>Tính năng nổi bật<input data-import-ingredients value="${escapeHtml(candidate.ingredients || '')}" placeholder="Ví dụ: Hạt sen · trứng muối"></label>
           <label>Tên nhóm phân loại<input data-import-variant-label value="${escapeHtml(candidate.variantLabel || existing?.variantLabel || '')}" placeholder="Ví dụ: Màu sắc"></label>
           <fieldset class="product-variant-editor import-variant-editor wide"><legend>Giá trị phân loại</legend><p>Mỗi màu sắc, kích thước hoặc hương vị là một dòng riêng.</p><div class="product-variant-rows" data-import-variant-rows>${validAdminProductVariants(candidate.variants).map(productVariantRowMarkup).join('')}</div><button class="secondary-button" type="button" data-import-add-variant>+ Thêm phân loại</button></fieldset>
-          <div class="richtext-field wide"><span class="richtext-label">Thông tin chi tiết</span>${AEONRichText.editorMarkup({name: 'details', value: candidate.details || '', rows: 8, placeholder: 'Kiểm tra lại nội dung OCR trước khi lưu'})}</div>
         </div>
         ${warnings.length ? `<div class="import-row-warnings">${warnings.map(warning => `<p>• ${escapeHtml(warning)}</p>`).join('')}</div>` : ''}
       </article>`;
@@ -1008,7 +1007,6 @@ function renderImportPreview(target, analysis, products) {
           sku: card.querySelector('[data-import-sku]').value,
           description: card.querySelector('[data-import-description]').value,
           ingredients: card.querySelector('[data-import-ingredients]').value,
-          details: card.querySelector('[data-richtext-input][name="details"]').value,
           variantLabel,
           variants,
           hasVariantColumns: Boolean(original.hasVariantColumns || variants.length || cleanTextImport(variantLabel))
@@ -1164,13 +1162,13 @@ function openProductEditor(id, options = {}) {
     const requestedPosition = Number(data.insertPosition);
     delete data.insertPosition;
     data.id = existing.id;
-    data.details = AEONRichText.clean(data.details, 3000);
     data.variants = getProductVariants();
     data.variantLabel = data.variants.length ? cleanTextImport(data.variantLabel, 100) || 'Phân loại' : '';
     data.price = data.variants.length ? Math.min(...data.variants.map(variant => variant.price)) : Number(data.price);
     data.originalPrice = Number(data.originalPrice) > data.price ? Math.round(Number(data.originalPrice)) : 0;
     if (!Number.isFinite(data.price) || data.price < 0) throw new Error('Giá bán không hợp lệ.');
-    data.images = normaliseProductImages([data.image, data.images]);
+    data.images = normaliseProductImages([data.image, data.image2, data.image3, data.image4, data.image5, data.images]);
+    delete data.image2; delete data.image3; delete data.image4; delete data.image5;
     data.image = data.images[0] || '';
     data.brand = normaliseAeonBrand(data.brand) || inferAeonBrandFromProductName(data.name);
     let all = [...aeonStore.products()];
@@ -1216,9 +1214,9 @@ function openProductEditor(id, options = {}) {
           <label>Mã sản phẩm<input name="sku" value="${escapeHtml(existing.sku || '')}" placeholder="Ví dụ: AM-2026-01"></label>
           <label class="image-path">Tên nhóm phân loại<input name="variantLabel" value="${escapeHtml(existing.variantLabel || '')}" placeholder="Ví dụ: Màu sắc, Kích thước, Hương vị"><small>Được hiển thị khi sản phẩm có nhiều lựa chọn.</small></label>
           <fieldset class="product-variant-editor image-path"><legend>Phân loại sản phẩm</legend><p>Mỗi màu sắc, kích thước hoặc hương vị có thể có giá và mã SKU riêng.</p><div class="product-variant-rows" data-variant-rows>${editorVariants.map(productVariantRowMarkup).join('')}</div><button class="secondary-button" type="button" data-add-variant>+ Thêm phân loại</button></fieldset>
-          <div class="richtext-field image-path"><span class="richtext-label">Chi tiết sản phẩm</span>${AEONRichText.editorMarkup({name: 'details', value: existing.details || '', rows: 8, placeholder: 'Thông tin hiển thị trong trang chi tiết'})}</div>
           <label class="image-path">Ảnh chính (URL)<input name="image" value="${escapeHtml(existing.image || '')}" placeholder="https://... hoặc /assets/uploads/ten-anh.png"></label>
-          <label class="image-path">Ảnh bổ sung (mỗi dòng một URL)<textarea name="images" rows="4" placeholder="https://.../anh-2.jpg&#10;https://.../anh-3.jpg">${escapeHtml(normaliseProductImages(existing.images, existing.image).slice(1).join('\n'))}</textarea><small>Ảnh hiển thị đúng theo thứ tự nhập; khách có thể bấm nút hoặc vuốt để xem.</small></label>
+          <label class="image-path">Ảnh bổ sung (tối đa 5 ảnh)<textarea name="images" rows="4" placeholder="https://.../anh-2.jpg&#10;https://.../anh-3.jpg">${escapeHtml(normaliseProductImages(existing.images, existing.image).slice(1).join('\n'))}</textarea><small>Nhập mỗi dòng một URL; hệ thống lưu tối đa 5 ảnh theo đúng thứ tự.</small></label>
+          <div class="image-path product-extra-image-fields"><label>Ảnh 2 (URL)<input name="image2" value="${escapeHtml(normaliseProductImages(existing.images, existing.image)[1] || '')}"></label><label>Ảnh 3 (URL)<input name="image3" value="${escapeHtml(normaliseProductImages(existing.images, existing.image)[2] || '')}"></label><label>Ảnh 4 (URL)<input name="image4" value="${escapeHtml(normaliseProductImages(existing.images, existing.image)[3] || '')}"></label><label>Ảnh 5 (URL)<input name="image5" value="${escapeHtml(normaliseProductImages(existing.images, existing.image)[4] || '')}"></label></div>
           <div class="upload-field image-path"><label for="productImageFile">Tải một hoặc nhiều ảnh từ máy</label><input id="productImageFile" type="file" multiple accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,.svg"><button class="secondary-button" id="uploadProductImage" type="button">Tải ảnh lên</button></div>
           <label>Màu nền khi chưa có ảnh<input name="bg" type="color" value="${existing.bg}"></label>
           <label>Màu hộp khi chưa có ảnh<input name="box" type="color" value="${existing.box}"></label>

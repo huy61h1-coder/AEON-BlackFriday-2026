@@ -858,8 +858,11 @@ const productWorkbookHeaders = [
   'Quy cách / khối lượng',
   'Thành phần',
   'Mô tả',
-  'Chi tiết sản phẩm',
   'Ảnh (URL)',
+  'Ảnh 2 (URL)',
+  'Ảnh 3 (URL)',
+  'Ảnh 4 (URL)',
+  'Ảnh 5 (URL)',
   'Tên phân loại',
   'Giá trị phân loại',
   'Mã phân loại',
@@ -867,7 +870,7 @@ const productWorkbookHeaders = [
   'Ảnh phân loại (URL)'
 ];
 
-const productWorkbookWidths = [20, 38, 16, 16, 26, 20, 18, 24, 38, 46, 58, 46, 20, 24, 20, 18, 46];
+const productWorkbookWidths = [20, 38, 16, 16, 26, 20, 18, 24, 38, 46, 46, 46, 46, 46, 20, 24, 20, 18, 46];
 
 function productWorkbookRow(product, variant = null) {
   return {
@@ -881,8 +884,11 @@ function productWorkbookRow(product, variant = null) {
     'Quy cách / khối lượng': spreadsheetText(product?.weight),
     'Thành phần': spreadsheetText(product?.ingredients),
     'Mô tả': spreadsheetText(product?.description),
-    'Chi tiết sản phẩm': spreadsheetText(product?.details),
     'Ảnh (URL)': spreadsheetText(product?.image),
+    'Ảnh 2 (URL)': spreadsheetText(product?.images?.[1]),
+    'Ảnh 3 (URL)': spreadsheetText(product?.images?.[2]),
+    'Ảnh 4 (URL)': spreadsheetText(product?.images?.[3]),
+    'Ảnh 5 (URL)': spreadsheetText(product?.images?.[4]),
     'Tên phân loại': spreadsheetText(product?.variantLabel || (variant ? 'Phân loại' : '')),
     'Giá trị phân loại': spreadsheetText(variant?.name),
     'Mã phân loại': spreadsheetText(variant?.sku),
@@ -915,7 +921,6 @@ function productWorkbookGuide() {
     {'Cột': 'Quy cách / khối lượng', 'Yêu cầu': 'Không bắt buộc', 'Ví dụ': '4 bánh · 720g'},
     {'Cột': 'Thành phần', 'Yêu cầu': 'Không bắt buộc', 'Ví dụ': 'Hạt sen · trứng muối'},
     {'Cột': 'Mô tả', 'Yêu cầu': 'Không bắt buộc', 'Ví dụ': 'Hộp quà phù hợp để biếu tặng.'},
-    {'Cột': 'Chi tiết sản phẩm', 'Yêu cầu': 'Không bắt buộc; hỗ trợ nội dung nhiều dòng', 'Ví dụ': 'Thông tin chi tiết về sản phẩm'},
     {'Cột': 'Ảnh (URL)', 'Yêu cầu': 'Không bắt buộc; dùng link ảnh hoặc đường dẫn /assets/uploads/...', 'Ví dụ': 'https://example.com/blackfriday-product.jpg'},
     {'Cột': 'Tên phân loại', 'Yêu cầu': 'Tên nhóm lựa chọn; lặp lại trên các dòng của cùng sản phẩm', 'Ví dụ': 'Màu sắc'},
     {'Cột': 'Giá trị phân loại', 'Yêu cầu': 'Mỗi lựa chọn nằm trên một dòng riêng', 'Ví dụ': 'Đỏ'},

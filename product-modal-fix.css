@@ -134,6 +134,13 @@
     grid-row: 1;
     min-height: 190px;
     height: 190px;
+    background: #fff !important;
+  }
+
+  /* Keep the unused space around a portrait/contained image white on mobile. */
+  .detail-gallery,
+  .detail-image-placeholder {
+    background: #fff !important;
   }
 
   .detail-gallery-control { width: 32px; height: 32px; font-size: 27px; }
@@ -161,5 +168,6 @@
 
   .detail-official-image {
     object-fit: contain;
+    background: #fff !important;
   }
 }

@@ -326,6 +326,8 @@ function candidatesFromText(sourceText, sourceKind) {
 function headerField(value) {
   const key = normaliseKey(value);
   if (!key) return '';
+  const extraImage = /(?:^| )(?:anh|hinh anh|image)(?: |_)?([2-5])(?: |$|url)/.exec(key);
+  if (extraImage) return `image${extraImage[1]}`;
   if (/(^| )(id he thong|id san pham|product id|system id)( |$)/.test(key)) return 'id';
   if (/(ten phan loai|nhom phan loai|variant label|variant group|option name)/.test(key)) return 'variantLabel';
   if (/(anh phan loai|hinh anh phan loai|variant image|option image)/.test(key)) return 'variantImage';
@@ -433,6 +435,7 @@ function candidatesFromSpreadsheet(buffer, filename = '') {
           ingredients: cleanText(record.ingredients || '', 300),
           details: cleanText(record.details || record.description || '', 1200),
           image: cleanText(record.image || '', 600),
+          images: [record.image, record.image2, record.image3, record.image4, record.image5].map(value => cleanText(value || '', 600)).filter(Boolean),
           variantLabel: cleanText(record.variantLabel || '', 100),
           variants: [],
           hasVariantColumns,
@@ -446,6 +449,7 @@ function candidatesFromSpreadsheet(buffer, filename = '') {
         ['description', 'sku', 'brand', 'label', 'weight', 'ingredients', 'details', 'image', 'variantLabel'].forEach(field => {
           if (!candidate[field] && record[field]) candidate[field] = cleanText(record[field], field === 'image' ? 600 : field === 'details' ? 1200 : 500);
         });
+        candidate.images = [...new Set([...(candidate.images || []), record.image, record.image2, record.image3, record.image4, record.image5].map(value => cleanText(value || '', 600)).filter(Boolean))].slice(0, 5);
         if (effectivePrice) candidate.price = candidate.price ? Math.min(candidate.price, effectivePrice) : effectivePrice;
         if (originalPrice > candidate.price) candidate.originalPrice = Math.max(Number(candidate.originalPrice) || 0, originalPrice);
         candidate.hasVariantColumns ||= hasVariantColumns;
