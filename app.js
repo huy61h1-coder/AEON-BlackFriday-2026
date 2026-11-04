@@ -772,6 +772,8 @@ function applyUi() {
   const pageTitle = String(ui.title || '').replace(/\s+/g, ' ').trim();
   document.title = pageTitle || 'BlackFriday';
   renderAeonBrandLogos(ui);
+  const campaignSchedule = $('.black-friday-bar [data-campaign-schedule]');
+  if (campaignSchedule) campaignSchedule.textContent = ui.campaignSchedule || 'ƯU ĐÃI ĐẶC BIỆT';
   const heroSection = $('.hero');
   const heroImageOnly = normaliseHeroDisplayMode(ui.heroDisplayMode) === 'image-only';
   heroSection.classList.toggle('hero-image-only', heroImageOnly);

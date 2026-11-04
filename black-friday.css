@@ -4,6 +4,9 @@ body { background:var(--bf-black)!important; color:var(--bf-white)!important; }
 body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:-1; opacity:.55; background:radial-gradient(circle at 78% 8%,rgba(226,29,63,.18),transparent 25%),radial-gradient(circle at 8% 42%,rgba(247,201,72,.10),transparent 22%),linear-gradient(120deg,#080808,#15100f 55%,#090909); }
 .site-header { background:rgba(9,9,9,.94)!important; border-bottom:1px solid var(--bf-line)!important; box-shadow:0 6px 22px rgba(0,0,0,.28); }
 .site-header nav a,.cart-button,.menu-toggle,.brand small { color:var(--bf-white)!important; }
+.site-header { position:relative; }
+.site-header nav { display:none!important; }
+.site-header .menu-toggle { display:block!important; order:4; margin-left:12px; font-size:26px; line-height:1; }
 .site-header nav a:hover,.cart-button:hover { color:var(--bf-gold)!important; }
 .brand { color:var(--bf-white)!important; }
 .brand span { color:var(--bf-white); text-shadow:0 0 18px rgba(226,29,63,.4); }

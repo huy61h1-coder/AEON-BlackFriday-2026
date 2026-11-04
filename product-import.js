@@ -344,7 +344,7 @@ function headerField(value) {
   if (/(thuong hieu|ten thuong hieu|nhan hieu|nhan hang|brand|brand name|manufacturer)/.test(key)) return 'brand';
   if (/(nhan|label|collection|bo suu tap)/.test(key)) return 'label';
   if (/(quy cach|khoi luong|trong luong|weight|net weight)/.test(key)) return 'weight';
-  if (/(thanh phan|ingredients|nguyen lieu)/.test(key)) return 'ingredients';
+  if (/(tinh nang noi bat|tinh nang|thanh phan|ingredients|nguyen lieu|features?)/.test(key)) return 'ingredients';
   if (/(hinh anh|anh|image|image url|url anh)/.test(key)) return 'image';
   return '';
 }

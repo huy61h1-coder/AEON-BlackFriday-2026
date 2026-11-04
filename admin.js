@@ -472,7 +472,8 @@ async function saveLogoSettings(patch = {}) {
     logoText: cleanLogoText(combined.logoText, AEON_DEFAULT_UI.logoText, 32),
     logoSubtitle: cleanLogoText(combined.logoSubtitle, '', 80, true),
     logoMode: normaliseLogoMode(combined.logoMode),
-    logoImage: normaliseImageUrl(combined.logoImage)
+    logoImage: normaliseImageUrl(combined.logoImage),
+    faviconImage: normaliseImageUrl(combined.faviconImage)
   };
   await saveShared('aeon-ui', nextUi);
 
@@ -1309,6 +1310,7 @@ function interfacePanel(panel) {
         <div class="admin-form-grid one">
           <label>Hiển thị khu vực hero<select name="heroDisplayMode"><option value="content-image"${normaliseHeroDisplayMode(ui.heroDisplayMode) === 'content-image' ? ' selected' : ''}>Hiển thị nội dung và hình ảnh</option><option value="image-only"${normaliseHeroDisplayMode(ui.heroDisplayMode) === 'image-only' ? ' selected' : ''}>Chỉ hiển thị hình ảnh</option></select><small>Ảnh banner phủ toàn bộ chiều cao hero và chừa lề theo giao diện.</small></label>
           <label>Nhãn chiến dịch<input name="eyebrow" required value="${escapeHtml(ui.eyebrow)}"></label>
+          <label>Ngày/thời gian chạy khuyến mãi<input name="campaignSchedule" maxlength="80" value="${escapeHtml(ui.campaignSchedule || '')}" placeholder="Ví dụ: 25/11 – 01/12/2026"></label>
           <label>Tiêu đề hero<textarea name="title" required rows="2">${escapeHtml(ui.title)}</textarea></label>
           <label>Giới thiệu hero<textarea name="intro" required rows="3">${escapeHtml(ui.intro)}</textarea></label>
           <label>Tiêu đề khu vực ưu đãi<input name="promotionTitle" maxlength="80" required value="${escapeHtml(ui.promotionTitle)}"></label>
@@ -1415,6 +1417,7 @@ function assetPanel(panel, options = {}) {
         <label>Dòng phụ logo<textarea name="logoSubtitle" maxlength="80" rows="2" placeholder="Ví dụ: BÌNH DƯƠNG&#10;NEW CITY">${escapeHtml(ui.logoSubtitle || '')}</textarea><small>Có thể nhấn Enter để xuống dòng.</small></label>
         <label>Kiểu hiển thị logo<select name="logoMode"><option value="text"${ui.logoMode === 'text' ? ' selected' : ''}>Logo chữ</option><option value="image"${ui.logoMode === 'image' ? ' selected' : ''}>Chỉ dùng ảnh logo</option><option value="image-subtitle"${ui.logoMode === 'image-subtitle' ? ' selected' : ''}>Ảnh logo và dòng phụ</option></select></label>
         <label>Đường dẫn ảnh logo<input name="logoImage" value="${escapeHtml(ui.logoImage || '')}" placeholder="https://... hoặc /assets/uploads/logo.png"></label>
+        <label>Icon website (favicon)<input name="faviconImage" value="${escapeHtml(ui.faviconImage || '')}" placeholder="https://... hoặc /assets/uploads/favicon.png"><small>Icon hiển thị cạnh tên website trên trình duyệt.</small></label>
         <div class="upload-field"><label for="logoImageFile">Tải ảnh logo từ máy (PNG, JPG, WEBP, GIF hoặc SVG)</label><input id="logoImageFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,.svg"><button class="secondary-button" id="uploadLogoImage" type="button">Tải và dùng logo</button></div>
         <div class="asset-preview logo-preview" id="logoPreview" aria-live="polite"></div>
         <div class="editor-actions"><button class="button primary" type="submit">Lưu ảnh logo</button><button class="danger" type="button" id="clearLogoImage">Bỏ ảnh logo</button></div>
@@ -1450,7 +1453,7 @@ function assetPanel(panel, options = {}) {
     try {
       const image = normaliseImageUrl(logoForm.elements.logoImage.value);
       const currentMode = normaliseLogoMode(logoForm.elements.logoMode.value);
-      const saved = await saveLogoSettings({logoText: logoForm.elements.logoText.value, logoSubtitle: logoForm.elements.logoSubtitle.value, logoImage: image, logoMode: image && currentMode === 'text' ? 'image' : currentMode});
+      const saved = await saveLogoSettings({logoText: logoForm.elements.logoText.value, logoSubtitle: logoForm.elements.logoSubtitle.value, logoImage: image, faviconImage: logoForm.elements.faviconImage.value, logoMode: image && currentMode === 'text' ? 'image' : currentMode});
       logoForm.elements.logoImage.value = saved.logoImage;
       setPreview($('#logoPreview'), saved.logoImage, 'Chưa chọn ảnh logo');
       toastAdmin('Đã lưu ảnh logo và đồng bộ website.');

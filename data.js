@@ -156,6 +156,12 @@ function aeonLogoSettings(ui = {}) {
 
 function renderAeonBrandLogos(ui = {}, root = document) {
   const settings = aeonLogoSettings(ui);
+  const faviconUrl = normaliseAeonLogoImage(ui.faviconImage);
+  let favicon = document.querySelector('link[data-aeon-favicon]');
+  if (faviconUrl) {
+    if (!favicon) { favicon = document.createElement('link'); favicon.rel = 'icon'; favicon.dataset.aeonFavicon = 'true'; document.head.append(favicon); }
+    favicon.href = faviconUrl;
+  } else if (favicon) favicon.remove();
   if (!root?.querySelectorAll) return settings;
 
   root.querySelectorAll('.brand').forEach(brand => {

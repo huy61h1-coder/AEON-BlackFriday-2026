@@ -82,7 +82,7 @@
   grid-row: 1;
   min-width: 0 !important;
   width: auto !important;
-  padding: 48px 42px 36px;
+  padding: 28px 34px 24px;
   overflow-wrap: anywhere;
 }
 
@@ -105,8 +105,12 @@
 }
 
 .detail-copy dl {
-  margin-bottom: 20px;
+  margin: 14px 0 16px;
 }
+
+.detail-copy > p:not(.eyebrow) { margin: 10px 0 !important; }
+.detail-copy dl div { padding: 7px 0; }
+.detail-copy dd { line-height: 1.45; }
 
 .detail-actions {
   padding-top: 3px;
