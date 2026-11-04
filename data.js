@@ -1,4 +1,7 @@
 const AEON_DEFAULT_PRODUCTS = [];
+// Only storefront settings carrying this revision may replace the current
+// Black Friday shell. Product data remains independent and is never cleared.
+const AEON_STOREFRONT_REVISION = 'blackfriday-20261104-v6';
 // Brand filters are generated from the products themselves.  Do not add a
 // fixed catalogue here: imported/new product brands appear automatically.
 const AEON_BRAND_GROUPS = [];
@@ -260,6 +263,16 @@ const deployedStorefrontState = window.AEON_DEPLOYED_STOREFRONT_STATE && typeof 
 const initialStorefrontState = Object.keys(serverStorefrontState).length
   ? serverStorefrontState
   : deployedStorefrontState;
+// A deployment can retain an older server-side layout while product data is
+// current. Do not let that unversioned layout restore the retired storefront.
+['aeon-ui', 'aeon-layout'].forEach(key => {
+  const deployed = deployedStorefrontState[key];
+  const incoming = initialStorefrontState[key];
+  if (deployed?.storefrontRevision === AEON_STOREFRONT_REVISION
+    && incoming?.storefrontRevision !== AEON_STOREFRONT_REVISION) {
+    initialStorefrontState[key] = deployed;
+  }
+});
 // Never let the legacy pink storefront layout override the current Black Friday
 // theme on the public/unauthenticated first paint.
 const initialLayout = initialStorefrontState['aeon-layout'];
@@ -291,6 +304,9 @@ const aeonStore = {
   },
 
   set(key, value) {
+    if (key === 'aeon-ui' || key === 'aeon-layout') {
+      value = {...(value && typeof value === 'object' ? value : {}), storefrontRevision: AEON_STOREFRONT_REVISION};
+    }
     localStorage.setItem(key, JSON.stringify(value));
     if (!sharedKeys.includes(key)) return Promise.resolve(true);
 
@@ -432,6 +448,11 @@ const aeonStore = {
       available.forEach(key => {
         // Do not let a slower GET overwrite a just-saved local change.
         if (preserveLocalKeys.has(key) || this.writing.has(key) || (this.lastWriteAt[key] || 0) > startedAt) return;
+        // A legacy API payload must not restore the retired storefront after
+        // login. Its product catalogue is still accepted independently.
+        if ((key === 'aeon-ui' || key === 'aeon-layout')
+          && deployedStorefrontState[key]?.storefrontRevision === AEON_STOREFRONT_REVISION
+          && state[key]?.storefrontRevision !== AEON_STOREFRONT_REVISION) return;
         localStorage.setItem(key, JSON.stringify(state[key]));
       });
       window.dispatchEvent(new Event('aeon-store-sync'));
