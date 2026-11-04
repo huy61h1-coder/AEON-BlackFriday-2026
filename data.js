@@ -243,6 +243,10 @@ const AEON_DEFAULT_LAYOUT = {
 
 const sharedKeys = ['aeon-products', 'aeon-ui', 'aeon-layout', 'aeon-brands', 'aeon-customers', 'aeon-orders'];
 const canSync = () => location.protocol === 'http:' || location.protocol === 'https:';
+// This is deliberately memory-only. The former localStorage flag could remain
+// after logout or after a deployment and incorrectly turn the public store into
+// the retired inline-admin interface.
+let verifiedAdminSession = false;
 
 // The server places only storefront-safe data in the first HTML response.
 // Hydrate it before rendering so an old device-local layout cannot flash first.
@@ -334,14 +338,11 @@ const aeonStore = {
   },
 
   isAdminSession() {
-    try {
-      return sessionStorage.getItem('aeon-admin') === 'true' || localStorage.getItem('aeon-admin') === 'true';
-    } catch {
-      return false;
-    }
+    return verifiedAdminSession;
   },
 
   setAdminSession(active) {
+    verifiedAdminSession = Boolean(active);
     try {
       if (active) {
         sessionStorage.setItem('aeon-admin', 'true');
@@ -352,6 +353,18 @@ const aeonStore = {
       }
     } catch {
       // The admin interface will stay unavailable if browser storage is disabled.
+    }
+  },
+
+  async refreshAdminSession() {
+    try {
+      const response = await fetch('/api/admin/session', {cache:'no-store', credentials:'same-origin'});
+      const result = await response.json().catch(() => ({}));
+      this.setAdminSession(Boolean(response.ok && result.authenticated));
+      return verifiedAdminSession;
+    } catch {
+      this.setAdminSession(false);
+      return false;
     }
   },
 
@@ -530,10 +543,10 @@ hydrateProductCommerceFields();
 // an older browser-local banner never replaces the current shared banner.
 // A server-rendered or deployed snapshot is authoritative for the first paint.
 // Avoid a second asynchronous request replacing it with stale cached settings.
-window.aeonStoreReady = Object.keys(initialStorefrontState).length
+const initialStorefrontLoad = Object.keys(initialStorefrontState).length
   ? Promise.resolve(true)
   : aeonStore.pull();
-window.aeonStoreReady = window.aeonStoreReady.then(result => {
+window.aeonStoreReady = Promise.all([initialStorefrontLoad, aeonStore.refreshAdminSession()]).then(([result]) => {
   hydrateProductCommerceFields();
   return result;
 });
