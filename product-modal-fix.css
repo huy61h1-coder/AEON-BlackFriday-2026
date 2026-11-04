@@ -111,7 +111,7 @@
 
 .detail-copy > p:not(.eyebrow) { margin: 10px 0 !important; }
 .detail-copy dl div { padding: 7px 0; }
-.detail-copy dd { line-height: 1.45; }
+.detail-copy dd { line-height: 1.45; white-space: pre-line; }
 
 .detail-actions {
   padding-top: 3px;

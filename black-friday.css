@@ -95,6 +95,17 @@ footer { background:#050505!important; border-top:1px solid var(--bf-line); } fo
 .product-modal-card #productDetailBody .detail-copy dt { color:#625c58!important; }
 .product-modal-card #productDetailBody .detail-copy p.detail-brand { color:var(--bf-red)!important; }
 .product-modal-card #productDetailBody .detail-copy p.detail-price { color:var(--bf-red)!important; }
+.storefront-admin-editor-card,
+.storefront-admin-editor-card label,
+.storefront-admin-editor-card input,
+.storefront-admin-editor-card textarea,
+.storefront-admin-editor-card select,
+.storefront-admin-editor-card small,
+.storefront-admin-editor-card h2,
+.storefront-admin-editor-card p { color:#242224!important; -webkit-text-fill-color:#242224!important; }
+.storefront-admin-editor-card input,
+.storefront-admin-editor-card textarea,
+.storefront-admin-editor-card select { background:#fff!important; border-color:#cfc5b9!important; }
 .product-modal-card #productDetailBody .detail-copy,
 .product-modal-card #productDetailBody .detail-copy * {
   opacity:1!important;
