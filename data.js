@@ -1,7 +1,7 @@
 const AEON_DEFAULT_PRODUCTS = [];
 // Only storefront settings carrying this revision may replace the current
 // Black Friday shell. Product data remains independent and is never cleared.
-const AEON_STOREFRONT_REVISION = 'blackfriday-20261104-v6';
+const AEON_STOREFRONT_REVISION = 'blackfriday-20261104-v7';
 // Brand filters are generated from the products themselves.  Do not add a
 // fixed catalogue here: imported/new product brands appear automatically.
 const AEON_BRAND_GROUPS = [];

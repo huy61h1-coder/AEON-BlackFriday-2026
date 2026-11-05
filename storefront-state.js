@@ -3,7 +3,7 @@
 // never replace the current product catalogue or product images.
 window.AEON_DEPLOYED_STOREFRONT_STATE = {
   "aeon-ui": {
-    "storefrontRevision": "blackfriday-20261104-v6",
+    "storefrontRevision": "blackfriday-20261104-v7",
     "eyebrow": "BLACK FRIDAY 2026",
     "title": "BlackFriday",
     "intro": "BlackFriday 2026, Top sản phẩm có giá ưu đãi đặc biệt.",
@@ -23,7 +23,7 @@ window.AEON_DEPLOYED_STOREFRONT_STATE = {
     "quotePdfUrl": "/assets/uploads/quotes/1785604173555-99ij31-AEON-CALATOG-TRUNG-THU-2026.pdf"
   },
   "aeon-layout": {
-    "storefrontRevision": "blackfriday-20261104-v6",
+    "storefrontRevision": "blackfriday-20261104-v7",
     "heroTitleSize": 35,
     "heroIntroSize": 13,
     "bannerAspectRatio": 1.5,
