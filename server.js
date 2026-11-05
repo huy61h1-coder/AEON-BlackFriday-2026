@@ -56,7 +56,7 @@ const types = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charse
 // Bump this whenever the storefront shell changes. It fingerprints every
 // local CSS/JS URL emitted by the Node deployment, so a CDN cannot revive an
 // obsolete interface after a new release.
-const storefrontBuild = '20261104-public-lock-v7';
+const storefrontBuild = '20261106-default-zero-slots-v1';
 const productImageFitCss = '\n/* Server-enforced product commerce lock. */\n.product-media{position:relative!important;overflow:hidden!important;background:#fff!important}.product-media:has(.product-image-placeholder:not([hidden])),.product-media:has(.product-image-placeholder:not([hidden])):before,.product-media .product-image-placeholder:not([hidden]){background:#fff!important}.product-media img.product-official-image{display:block!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;margin:0!important;padding:0!important;object-fit:contain!important;object-position:center center!important}.product-price-stack .price,.product-price-stack .regular-price,.product-discount-badge{visibility:visible!important;opacity:1!important}\n';
 const noCacheHeaders = {
   'Cache-Control':'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0',
@@ -319,8 +319,19 @@ function publicStorefrontState(state) {
   ['aeon-products', 'aeon-ui', 'aeon-layout', 'aeon-brands'].forEach(key => {
     if (Object.hasOwn(state || {}, key)) visible[key] = state[key];
   });
-  visible['aeon-layout'] = {...canonicalLayout};
+  visible['aeon-layout'] = publicLayoutForState(state);
   return visible;
+}
+
+function publicLayoutForState(state) {
+  const saved = state?.['aeon-layout'] && typeof state['aeon-layout'] === 'object' ? state['aeon-layout'] : {};
+  const desktopColumns = Number(saved.productColumns);
+  const mobileColumns = Number(saved.productColumnsMobile);
+  return {
+    ...canonicalLayout,
+    productColumns: [0, 1, 2, 3, 4, 5, 6].includes(desktopColumns) ? desktopColumns : canonicalLayout.productColumns,
+    productColumnsMobile: [0, 1, 2].includes(mobileColumns) ? mobileColumns : canonicalLayout.productColumnsMobile
+  };
 }
 
 function productTombstones(state) {
@@ -467,7 +478,7 @@ function publicStoreStateMarkup(state) {
   ['aeon-products', 'aeon-ui', 'aeon-layout', 'aeon-brands'].forEach(key => {
     if (Object.hasOwn(state, key)) publicState[key] = state[key];
   });
-  publicState['aeon-layout'] = {...canonicalLayout};
+  publicState['aeon-layout'] = publicLayoutForState(state);
   const encoded = JSON.stringify(publicState)
     .replace(/</g, '\\u003c')
     .replace(/>/g, '\\u003e')
@@ -488,7 +499,7 @@ function layoutColor(value, fallback) {
 }
 
 function initialLayoutStyle(state) {
-  const layout = canonicalLayout;
+  const layout = publicLayoutForState(state);
   const headerHeight = layoutNumber(layout.headerHeight, 10, 112, 82);
   const heroHeight = layoutNumber(layout.heroHeight, 0, 700, 0);
   const sectionSpacing = layoutNumber(layout.sectionSpacing, 0, 170, 0);
@@ -858,6 +869,9 @@ const productWorkbookHeaders = [
   'Tên sản phẩm',
   'Giá khuyến mãi',
   'Giá thường',
+  'Tên sản phẩm khuyến mãi',
+  'Giá trị sản phẩm khuyến mãi',
+  'Ảnh sản phẩm khuyến mãi (URL)',
   'Thương hiệu',
   'Mã sản phẩm',
   'Nhãn hiển thị',
@@ -873,10 +887,12 @@ const productWorkbookHeaders = [
   'Giá trị phân loại',
   'Mã phân loại',
   'Giá phân loại',
-  'Ảnh phân loại (URL)'
+  'Ảnh phân loại (URL)',
+  'Suất còn lại',
+  'Tổng số suất'
 ];
 
-const productWorkbookWidths = [20, 38, 16, 16, 26, 20, 18, 24, 38, 46, 46, 46, 46, 46, 20, 24, 20, 18, 46];
+const productWorkbookWidths = [20, 38, 16, 16, 34, 30, 46, 26, 20, 18, 24, 38, 46, 46, 46, 46, 46, 46, 20, 24, 20, 18, 46, 16, 16];
 
 function productWorkbookRow(product, variant = null) {
   return {
@@ -884,13 +900,16 @@ function productWorkbookRow(product, variant = null) {
     'Tên sản phẩm': spreadsheetText(product?.name),
     'Giá khuyến mãi': spreadsheetNumber(product?.price),
     'Giá thường': spreadsheetNumber(product?.originalPrice),
+    'Tên sản phẩm khuyến mãi': spreadsheetText(product?.promotionProductName),
+    'Giá trị sản phẩm khuyến mãi': spreadsheetText(product?.promotionProductValue),
+    'Ảnh sản phẩm khuyến mãi (URL)': spreadsheetText(product?.promotionProductImage),
     'Thương hiệu': spreadsheetText(product?.brand),
     'Mã sản phẩm': spreadsheetText(product?.sku),
     'Nhãn hiển thị': spreadsheetText(product?.label),
     'Quy cách / khối lượng': spreadsheetText(product?.weight),
     'Tính năng nổi bật': spreadsheetText(product?.ingredients),
     'Mô tả': spreadsheetText(product?.description),
-    'Ảnh (URL)': spreadsheetText(product?.image),
+    'Ảnh 1 (URL)': spreadsheetText(product?.image),
     'Ảnh 2 (URL)': spreadsheetText(product?.images?.[1]),
     'Ảnh 3 (URL)': spreadsheetText(product?.images?.[2]),
     'Ảnh 4 (URL)': spreadsheetText(product?.images?.[3]),
@@ -899,7 +918,9 @@ function productWorkbookRow(product, variant = null) {
     'Giá trị phân loại': spreadsheetText(variant?.name),
     'Mã phân loại': spreadsheetText(variant?.sku),
     'Giá phân loại': variant ? spreadsheetNumber(variant.price) : '',
-    'Ảnh phân loại (URL)': spreadsheetText(variant?.image)
+    'Ảnh phân loại (URL)': spreadsheetText(variant?.image),
+    'Suất còn lại': Number.isFinite(Number(product?.dealSlotsRemaining)) ? Math.max(0, Math.min(9999, Math.floor(Number(product.dealSlotsRemaining)))) : 0,
+    'Tổng số suất': Number.isFinite(Number(product?.dealSlotsTotal)) ? Math.max(1, Math.min(9999, Math.floor(Number(product.dealSlotsTotal)))) : 20
   };
 }
 
@@ -921,6 +942,11 @@ function productWorkbookGuide() {
     {'Cột': 'Tên sản phẩm', 'Yêu cầu': 'Bắt buộc; lặp lại trên các dòng phân loại của cùng sản phẩm', 'Ví dụ': 'Sản phẩm ưu đãi BlackFriday'},
     {'Cột': 'Giá khuyến mãi', 'Yêu cầu': 'Giá chung khi không có phân loại; nếu có phân loại, hệ thống lấy giá thấp nhất', 'Ví dụ': '350000'},
     {'Cột': 'Giá thường', 'Yêu cầu': 'Không bắt buộc; lớn hơn Giá khuyến mãi để hiển thị giá gạch ngang và % giảm', 'Ví dụ': '450000'},
+    {'Cột': 'Tên sản phẩm khuyến mãi', 'Yêu cầu': 'Không bắt buộc; tên hàng tặng kèm trên dải khuyến mãi Black Friday', 'Ví dụ': 'Nồi lẩu điện'},
+    {'Cột': 'Giá trị sản phẩm khuyến mãi', 'Yêu cầu': 'Không bắt buộc; giá trị quà tặng hiển thị sau chữ TRỊ GIÁ', 'Ví dụ': '990.000 ₫'},
+    {'Cột': 'Ảnh sản phẩm khuyến mãi (URL)', 'Yêu cầu': 'Không bắt buộc; lớp phủ chỉ hiện khi có đủ tên quà tặng, giá trị và link ảnh', 'Ví dụ': 'https://example.com/noi-lau.jpg'},
+    {'Cột': 'Suất còn lại', 'Yêu cầu': 'Số suất đang còn; dải đổi màu theo tỷ lệ so với Tổng số suất', 'Ví dụ': '20'},
+    {'Cột': 'Tổng số suất', 'Yêu cầu': 'Tổng số suất ưu đãi của sản phẩm', 'Ví dụ': '20'},
     {'Cột': 'Thương hiệu', 'Yêu cầu': 'Nhập tên thương hiệu; bộ lọc sẽ tự động được tạo', 'Ví dụ': 'Kinh Đô'},
     {'Cột': 'Mã sản phẩm', 'Yêu cầu': 'Nên có và phải giống nhau trên các dòng phân loại của cùng sản phẩm', 'Ví dụ': 'AM-2026-01'},
     {'Cột': 'Nhãn hiển thị', 'Yêu cầu': 'Không bắt buộc', 'Ví dụ': 'Bán chạy'},
@@ -946,6 +972,11 @@ function productImportTemplateWorkbook() {
     name: 'Sản phẩm ưu đãi BlackFriday',
     price: 350000,
     originalPrice: 450000,
+    promotionProductName: 'Nồi lẩu điện',
+    promotionProductValue: '990.000 ₫',
+    promotionProductImage: 'https://example.com/noi-lau.jpg',
+    dealSlotsRemaining: 0,
+    dealSlotsTotal: 20,
     brand: 'Kinh Đô',
     sku: 'AM-2026-01',
     label: 'Bán chạy',
@@ -1093,22 +1124,24 @@ async function productCatalogWorkbook(state) {
     {key:'price', width:20},
     {key:'brand', width:24},
     {key:'sku', width:22},
-    {key:'variants', width:36}
+    {key:'variants', width:36},
+    {key:'dealSlotsRemaining', width:16},
+    {key:'dealSlotsTotal', width:16}
   ];
-  catalogue.mergeCells('A1:F1');
+  catalogue.mergeCells('A1:H1');
   catalogue.getCell('A1').value = 'DANH MỤC SẢN PHẨM';
   catalogue.getCell('A1').font = {name:'Be Vietnam Pro', size:18, bold:true, color:{argb:'FFFFFFFF'}};
   catalogue.getCell('A1').fill = {type:'pattern', pattern:'solid', fgColor:{argb:'FFD72D58'}};
   catalogue.getCell('A1').alignment = {horizontal:'left', vertical:'middle'};
   catalogue.getRow(1).height = 34;
-  catalogue.mergeCells('A2:F2');
+  catalogue.mergeCells('A2:H2');
   catalogue.getCell('A2').value = `Danh sách ${products.length} sản phẩm đang hiển thị trên website`;
   catalogue.getCell('A2').font = {name:'Be Vietnam Pro', size:10, color:{argb:'FF6E6967'}};
   catalogue.getCell('A2').alignment = {vertical:'middle'};
   catalogue.getRow(2).height = 22;
   catalogue.getRow(3).height = 8;
 
-  const headerRow = catalogue.addRow(['Hình ảnh', 'Tên sản phẩm', 'Giá bán', 'Thương hiệu', 'Mã sản phẩm', 'Phân loại']);
+  const headerRow = catalogue.addRow(['Hình ảnh', 'Tên sản phẩm', 'Giá bán', 'Thương hiệu', 'Mã sản phẩm', 'Phân loại', 'Suất còn lại', 'Tổng số suất']);
   headerRow.height = 26;
   headerRow.eachCell(cell => {
     cell.font = {name:'Be Vietnam Pro', size:10, bold:true, color:{argb:'FFFFFFFF'}};
@@ -1124,7 +1157,9 @@ async function productCatalogWorkbook(state) {
       productCatalogPrice(product),
       String(product?.brand || ''),
       String(product?.sku || ''),
-      productCatalogVariants(product)
+      productCatalogVariants(product),
+      Number.isFinite(Number(product?.dealSlotsRemaining)) ? Math.max(0, Math.min(9999, Math.floor(Number(product.dealSlotsRemaining)))) : 0,
+      Number.isFinite(Number(product?.dealSlotsTotal)) ? Math.max(1, Math.min(9999, Math.floor(Number(product.dealSlotsTotal)))) : 20
     ]);
     row.height = 86;
     row.eachCell(cell => {
@@ -1600,7 +1635,18 @@ http.createServer(async (request, response) => {
       if (!allowedKeys.has(key)) return json(response, 400, {error:'Không thể lưu loại dữ liệu này.'});
       const state = readState();
       if (key === 'aeon-products' && !requirePermission(request, response, 'products')) return;
-      if (key === 'aeon-layout') return json(response, 409, {error:'Bố cục, màu sắc và kích thước đã được khóa theo giao diện mới.'});
+      if (key === 'aeon-layout') {
+        if (!requirePermission(request, response, 'interface')) return;
+        const requested = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+        const current = publicLayoutForState(state);
+        const desktopColumns = Number(requested.productColumns);
+        const mobileColumns = Number(requested.productColumnsMobile);
+        state[key] = {
+          ...canonicalLayout,
+          productColumns: [0, 1, 2, 3, 4, 5, 6].includes(desktopColumns) ? desktopColumns : current.productColumns,
+          productColumnsMobile: [0, 1, 2].includes(mobileColumns) ? mobileColumns : current.productColumnsMobile
+        };
+      }
       if (key === 'aeon-brands' && !requirePermission(request, response, 'brands')) return;
       if (key === 'aeon-ui') {
         const principal = adminPrincipal(request);
@@ -1619,7 +1665,18 @@ http.createServer(async (request, response) => {
           }
         }
       }
-      state[key] = key === 'aeon-products' ? withoutDeletedProducts(state, value) : value;
+      if (key === 'aeon-products') {
+        const products = Array.isArray(value) ? value : [];
+        // An authenticated product save/import is an explicit re-add. Release
+        // tombstones for IDs present in that submitted catalogue so deleting a
+        // catalogue and importing the same Excel file can restore every item.
+        const restoredIds = new Set(products.map(product => String(product?.id || '').trim()).filter(Boolean));
+        const tombstones = productTombstones(state);
+        state[productTombstoneStateKey] = [...tombstones].filter(id => !restoredIds.has(id));
+        state[key] = products;
+      } else if (key !== 'aeon-layout') {
+        state[key] = value;
+      }
       await writeState(state, [key]);
       return json(response, 200, {ok:true});
     } catch (error) { return json(response, 400, {error:error.message || 'Không thể lưu dữ liệu.'}); }

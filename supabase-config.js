@@ -1,7 +1,7 @@
-// Supabase connection for the AEON Mooncake storefront + admin.
+// Optional Supabase connection for the AEON Black Friday storefront + admin.
 // Loaded as a plain <script> (no bundler), so we use the UMD build from jsDelivr.
-window.AEON_SUPABASE_URL = 'https://fosqegpascksaaaityui.supabase.co';
-window.AEON_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvc3FlZ3Bhc2Nrc2FhYWl0eXVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzOTc3ODEsImV4cCI6MjEwMDk3Mzc4MX0.mgCPCrvHB7rlqznFGP7Ug_GsWp6PeeGQYVm6o-66Z1s';
+window.AEON_SUPABASE_URL = '';
+window.AEON_SUPABASE_ANON_KEY = '';
 window.AEON_UPLOADS_BUCKET = 'aeon-uploads';
 
 window.getAeonSupabase = function () {

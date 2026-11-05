@@ -84,6 +84,22 @@ body.has-custom-font-family h6 {
 .storefront-appearance-card footer .button { min-width: 140px; }
 .storefront-appearance-cancel { border: 0; background: transparent; color: var(--muted); font: 700 11px 'Be Vietnam Pro'; cursor: pointer; padding: 10px; }
 
+/* Keep the appearance editor legible while editing dark storefront themes. */
+.storefront-appearance-card{border:1px solid var(--line);background:var(--paper);color:var(--ink);box-shadow:0 24px 80px rgba(0,0,0,.28)}
+.storefront-appearance-card :is(h2,h3,label,output){color:var(--ink)}
+.storefront-appearance-card header>p:not(.eyebrow),.storefront-appearance-cancel{color:var(--muted)}
+.storefront-appearance-section{border-top-color:var(--line)}
+.storefront-appearance-grid input:not([type="color"]),.storefront-appearance-grid select{border:1px solid var(--line);background:var(--paper);color:var(--ink)}
+.storefront-appearance-grid input::placeholder,.storefront-appearance-grid textarea::placeholder{color:var(--muted);opacity:1}
+.storefront-appearance-grid input[type="color"]{border-color:var(--line);background:var(--paper)}
+.storefront-appearance-grid select{border-bottom-color:var(--line);background:var(--paper)}
+.storefront-appearance-grid .layout-range{background:var(--line)}
+.storefront-appearance-grid .layout-range::-webkit-slider-thumb,.storefront-appearance-grid .layout-range::-moz-range-thumb{border-color:var(--paper)}
+.storefront-appearance-card .danger{border:1px solid color-mix(in srgb,var(--red) 48%,var(--line));background:color-mix(in srgb,var(--red) 20%,var(--paper));color:var(--ink)}
+.storefront-appearance-card .danger:hover{border-color:var(--red);background:color-mix(in srgb,var(--red) 30%,var(--paper))}
+.storefront-appearance-card .button.primary{border-color:var(--red);background:var(--red);color:#fff}
+.storefront-appearance-card :is(button,input,select,textarea):focus-visible{outline:3px solid color-mix(in srgb,var(--red) 72%,white);outline-offset:2px}
+
 @media (max-width: 760px) {
   .storefront-appearance-editor { padding: 10px; }
   .storefront-appearance-card { max-height: 96dvh; padding: 27px 19px 20px; }

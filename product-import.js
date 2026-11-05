@@ -3,7 +3,9 @@ const {PDFParse} = require('pdf-parse');
 const {createWorker, PSM} = require('tesseract.js');
 const vietnameseData = require('@tesseract.js-data/vie');
 
-const MAX_CANDIDATES = 100;
+// Keep large catalogues intact; the previous 100-row ceiling silently hid the
+// rest of a valid workbook from the admin preview.
+const MAX_CANDIDATES = 1000;
 const MAX_TEXT_LENGTH = 45000;
 const MAX_PDF_PAGES = 3;
 
@@ -55,6 +57,12 @@ function parsePrice(value) {
   const digits = numeric[0].replace(/\D/g, '');
   const price = Number(digits);
   return Number.isFinite(price) && price >= 1000 ? price : null;
+}
+
+function parseSlotCount(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) return Math.max(0, Math.min(9999, Math.floor(value)));
+  const digits = cleanText(value, 40).replace(/[^0-9]/g, '');
+  return digits ? Math.min(9999, Number(digits)) : null;
 }
 
 function priceFromLine(line) {
@@ -328,18 +336,23 @@ function headerField(value) {
   if (!key) return '';
   const extraImage = /(?:^| )(?:anh|hinh anh|image)(?: |_)?([1-5])(?: |$|url)/.exec(key);
   if (extraImage) return extraImage[1] === '1' ? 'image' : `image${extraImage[1]}`;
+  if (/(ten (?:(?:san pham|sp) )?khuyen mai|promo(?:tion)? product name|promotion name)/.test(key)) return 'promotionProductName';
+  if (/(gia tri (?:(?:san pham|sp) )?khuyen mai|gia tri uu dai|promo(?:tion)? value)/.test(key)) return 'promotionProductValue';
+  if (/(anh (?:(?:san pham|sp) )?khuyen mai|hinh anh (?:(?:san pham|sp) )?khuyen mai|promo(?:tion)? image)/.test(key)) return 'promotionProductImage';
+  if (/(suat con lai|so suat con lai|remaining (?:deal )?slots|slots remaining|quota remaining)/.test(key)) return 'dealSlotsRemaining';
+  if (/(tong so suat|tong suat|so suat uu dai|total (?:deal )?slots|deal slots total|quota total)/.test(key)) return 'dealSlotsTotal';
   if (/(^| )(id he thong|id san pham|product id|system id)( |$)/.test(key)) return 'id';
   if (/(ten phan loai|nhom phan loai|variant label|variant group|option name)/.test(key)) return 'variantLabel';
   if (/(anh phan loai|hinh anh phan loai|variant image|option image)/.test(key)) return 'variantImage';
   if (/(ma phan loai|ma bien the|variant sku|option sku)/.test(key)) return 'variantSku';
   if (/(gia phan loai|gia bien the|variant price|option price)/.test(key)) return 'variantPrice';
-  if (/(gia thuong|gia niem yet|gia goc|regular price|original price|list price)/.test(key)) return 'originalPrice';
-  if (/(gia khuyen mai|gia uu dai|sale price|promotional price|discount price)/.test(key)) return 'price';
+  if (/(gia thuong|gia niem yet|gia goc|gia ban le|regular price|original price|list price|retail price)/.test(key)) return 'originalPrice';
+  if (/(gia khuyen mai|gia uu dai|gia sau giam|gia thuc te|gia ban sau|sale price|promotional price|discount price)/.test(key)) return 'price';
   if (/(gia tri phan loai|phan loai|bien the|lua chon|variant value|option value)/.test(key)) return 'variantName';
   if (/(chi tiet san pham|noi dung chi tiet|full details)/.test(key)) return 'details';
   if (/(ma san pham|ma sp|sku|product code|code)/.test(key)) return 'sku';
-  if (/(^| )(ten san pham|san pham|product name|product|item name|ten)( |$)/.test(key)) return 'name';
-  if (/(^| )(gia ban|don gia|gia|price|unit price|vnd|vnđ)( |$)/.test(key)) return 'price';
+  if (/(^| )(ten san pham|san pham|ten hang hoa|ten hang|hang hoa|mat hang|product name|product|item name|item|ten)( |$)/.test(key)) return 'name';
+  if (/(^| )(gia ban|don gia|don gia ban|gia|price|unit price|selling price|vnd|vnđ)( |$)/.test(key)) return 'price';
   if (/(mo ta|description|details|noi dung|thong tin)/.test(key)) return 'description';
   if (/(thuong hieu|ten thuong hieu|nhan hieu|nhan hang|brand|brand name|manufacturer)/.test(key)) return 'brand';
   if (/(nhan|label|collection|bo suu tap)/.test(key)) return 'label';
@@ -379,7 +392,7 @@ function candidatesFromSpreadsheet(buffer, filename = '') {
   const warnings = [];
   const groupedCandidates = new Map();
 
-  workbook.SheetNames.slice(0, 10).forEach(sheetName => {
+  workbook.SheetNames.forEach(sheetName => {
     if (candidates.length >= MAX_CANDIDATES) return;
     if (isInstructionSheet(sheetName)) return;
     const sheet = workbook.Sheets[sheetName];
@@ -415,11 +428,11 @@ function candidatesFromSpreadsheet(buffer, filename = '') {
       const systemId = cleanText(record.id || '', 100);
       const sku = cleanText(record.sku || '', 100);
       const brand = cleanText(record.brand || '', 100);
+      // Product IDs are authoritative. Otherwise group repeated name/brand
+      // rows (including separate variant SKUs) into one product draft.
       const groupKey = systemId
         ? `id:${normaliseKey(systemId)}`
-        : sku
-          ? `sku:${normaliseKey(sku)}`
-          : `name:${normaliseKey(name)}|brand:${normaliseKey(brand)}`;
+        : `name:${normaliseKey(name)}|brand:${normaliseKey(brand)}`;
       let candidate = groupedCandidates.get(groupKey);
       if (!candidate) {
         candidate = {
@@ -431,6 +444,11 @@ function candidatesFromSpreadsheet(buffer, filename = '') {
           sku,
           brand,
           label: cleanText(record.label || '', 100),
+          promotionProductName: cleanText(record.promotionProductName || '', 160),
+          promotionProductValue: cleanText(record.promotionProductValue || '', 120),
+          promotionProductImage: cleanText(record.promotionProductImage || '', 600),
+          dealSlotsRemaining: parseSlotCount(record.dealSlotsRemaining),
+          dealSlotsTotal: parseSlotCount(record.dealSlotsTotal),
           weight: cleanText(record.weight || '', 100),
           ingredients: cleanText(record.ingredients || '', 300),
           details: cleanText(record.details || record.description || '', 1200),
@@ -446,9 +464,12 @@ function candidatesFromSpreadsheet(buffer, filename = '') {
         groupedCandidates.set(groupKey, candidate);
         candidates.push(candidate);
       } else {
-        ['description', 'sku', 'brand', 'label', 'weight', 'ingredients', 'details', 'image', 'variantLabel'].forEach(field => {
-          if (!candidate[field] && record[field]) candidate[field] = cleanText(record[field], field === 'image' ? 600 : field === 'details' ? 1200 : 500);
+        if (!candidate.sku && sku) candidate.sku = sku;
+        ['description', 'sku', 'brand', 'label', 'promotionProductName', 'promotionProductValue', 'promotionProductImage', 'weight', 'ingredients', 'details', 'image', 'variantLabel'].forEach(field => {
+          if (!candidate[field] && record[field]) candidate[field] = cleanText(record[field], field === 'image' || field === 'promotionProductImage' ? 600 : field === 'details' ? 1200 : field === 'promotionProductName' ? 160 : field === 'promotionProductValue' ? 120 : 500);
         });
+        if (candidate.dealSlotsRemaining == null && record.dealSlotsRemaining) candidate.dealSlotsRemaining = parseSlotCount(record.dealSlotsRemaining);
+        if (candidate.dealSlotsTotal == null && record.dealSlotsTotal) candidate.dealSlotsTotal = parseSlotCount(record.dealSlotsTotal);
         candidate.images = [...new Set([...(candidate.images || []), record.image, record.image2, record.image3, record.image4, record.image5].map(value => cleanText(value || '', 600)).filter(Boolean))].slice(0, 5);
         if (effectivePrice) candidate.price = candidate.price ? Math.min(candidate.price, effectivePrice) : effectivePrice;
         if (originalPrice > candidate.price) candidate.originalPrice = Math.max(Number(candidate.originalPrice) || 0, originalPrice);
@@ -475,6 +496,10 @@ function candidatesFromSpreadsheet(buffer, filename = '') {
       }
     });
   });
+
+  if (candidates.length >= MAX_CANDIDATES) {
+    warnings.push(`Tệp có ít nhất ${MAX_CANDIDATES} sản phẩm; giới hạn xem trước là ${MAX_CANDIDATES}. Hãy tách danh mục thành nhiều tệp nhỏ hơn để nhập đầy đủ.`);
+  }
 
   return {candidates, warnings};
 }

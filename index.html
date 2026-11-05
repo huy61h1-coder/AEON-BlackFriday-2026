@@ -47,20 +47,20 @@
   <link rel="stylesheet" href="product-variants.css?v=20261105-blackfriday-v8" />
   <link rel="stylesheet" href="storefront-product-ux.css?v=20261105-blackfriday-v8" />
   <link rel="stylesheet" href="brand-directory.css?v=20261105-blackfriday-v8" />
-  <link rel="stylesheet" href="storefront-admin.css?v=20261105-blackfriday-v8" />
+  <link rel="stylesheet" href="storefront-admin.css?v=20261106-promo-fields" />
   <link rel="stylesheet" href="theme-customization.css?v=20261105-blackfriday-v8" />
   <link rel="stylesheet" href="quote-download.css?v=20261105-blackfriday-v8" />
   <link rel="stylesheet" href="catalog-search-sort.css?v=20261105-blackfriday-v8" />
   <link rel="stylesheet" href="promotion-rich-text.css?v=20261105-blackfriday-v8" />
-  <link rel="stylesheet" href="black-friday.css?v=20261105-blackfriday-v8" />
+  <link rel="stylesheet" href="black-friday.css?v=20261106-default-zero-slots" />
   <!-- INITIAL_LAYOUT -->
   <link rel="stylesheet" href="storefront-public-lock.css?v=20261105-blackfriday-v8" />
   <!-- This critical lock is intentionally inline.  The deployed page remains
        customer-only even if an edge node briefly serves an older CSS/JS asset. -->
   <style id="public-storefront-critical-lock">
-    .storefront-admin-toolbar,
-    .storefront-product-admin-actions,
-    .catalog-admin-add,
+    body:not(.admin-preview) .storefront-admin-toolbar,
+    body:not(.admin-preview) .storefront-product-admin-actions,
+    body:not(.admin-preview) .catalog-admin-add,
     #collection > .catalog-controls,
     #collection > .brand-directory {
       display: none !important;
@@ -141,7 +141,7 @@
     <section class="section collection" id="collection"><div class="catalog-controls"><p class="catalog-result" id="catalogResult" aria-live="polite">Đang tải sản phẩm...</p><div class="catalog-control-filters"><label for="productPriceFilter">Mức giá<select id="productPriceFilter" aria-label="Lọc sản phẩm theo mức giá"><option value="all">Tất cả mức giá</option><option value="under-200k">Dưới 200.000 ₫</option><option value="200k-500k">200.000 – 500.000 ₫</option><option value="500k-1m">500.000 – 1.000.000 ₫</option><option value="over-1m">Trên 1.000.000 ₫</option><option value="contact">Liên hệ</option></select></label><label for="productSort">Sắp xếp<select id="productSort" aria-label="Sắp xếp sản phẩm"><option value="featured">Nổi bật</option><option value="name-asc">Tên: A → Z</option><option value="name-desc">Tên: Z → A</option><option value="price-asc">Giá: thấp → cao</option><option value="price-desc">Giá: cao → thấp</option><option value="brand-asc">Nhãn hiệu: A → Z</option><option value="brand-desc">Nhãn hiệu: Z → A</option></select></label></div></div><section class="brand-directory" id="brandDirectory" aria-label="Lọc sản phẩm theo thương hiệu"></section><div class="products" id="productGrid"></div></section>
     <section class="gift-banner"><div><p class="eyebrow">MUA SẮM DOANH NGHIỆP</p><h2>Ưu đãi số lượng lớn<br>theo cách riêng.</h2><p>Liên hệ để được tư vấn sản phẩm, báo giá theo số lượng và giao hàng theo danh sách.</p><a class="button light" href="#checkout">Nhận tư vấn <span>→</span></a></div><div class="gift-shape"><span>Deal</span><i>✦</i></div></section>
     <section class="section how" id="how"><p class="eyebrow">ĐƠN GIẢN & THUẬN TIỆN</p><h2>Mua sắm BlackFriday<br>theo cách của bạn.</h2><div class="steps"><article><b>01</b><h3>Chọn sản phẩm</h3><p>Khám phá danh mục và thêm lựa chọn yêu thích vào giỏ.</p></article><article><b>02</b><h3>Điền thông tin</h3><p>Cho chúng tôi biết thông tin nhận hàng của bạn.</p></article><article><b>03</b><h3>Xác nhận đơn</h3><p>Đơn hàng được tiếp nhận, sẵn sàng để bạn theo dõi.</p></article></div></section>
-    <section class="checkout section" id="checkout" hidden><div class="checkout-copy"><p class="eyebrow">HOÀN TẤT ĐẶT HÀNG</p><h2>Thông tin<br>người nhận.</h2><p>Vui lòng hoàn thiện thông tin bên cạnh. Chúng tôi sẽ xác nhận đơn hàng của bạn ngay khi nhận được yêu cầu.</p><p class="note">Đây là form mô phỏng, không gửi dữ liệu đến bên thứ ba.</p></div><form id="orderForm" novalidate><div class="form-row"><label>Họ và tên<input name="name" required autocomplete="name" placeholder="Nguyễn Minh Anh" /></label><label>Số điện thoại<input name="phone" required inputmode="tel" autocomplete="tel" placeholder="090 123 4567" /></label></div><label>Email<input name="email" required type="email" autocomplete="email" placeholder="anh@example.com" /></label><label>Địa chỉ giao hàng<textarea name="address" required rows="3" placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố"></textarea></label><label>Lời nhắn <span>(không bắt buộc)</span><textarea name="message" rows="2" placeholder="Một lời chúc nhỏ gửi tới người nhận..."></textarea></label><button class="button primary submit" type="submit">Xác nhận đặt hàng <span>→</span></button><p class="form-error" id="formError" role="alert"></p></form></section>
+    <section class="checkout section" id="checkout" hidden><div class="checkout-copy"><p class="eyebrow">HOÀN TẤT ĐẶT HÀNG</p><h2>Thông tin<br>người nhận.</h2><p>Vui lòng hoàn thiện thông tin bên cạnh. Chúng tôi sẽ xác nhận đơn hàng của bạn ngay khi nhận được yêu cầu.</p><p class="note">Thông tin được lưu trong hệ thống quản trị để xử lý đơn hàng và xuất hóa đơn.</p></div><form id="orderForm" novalidate><div class="form-row"><label>Họ và tên<input name="name" required autocomplete="name" placeholder="Nguyễn Minh Anh" /></label><label>Số điện thoại<input name="phone" required inputmode="tel" autocomplete="tel" placeholder="090 123 4567" /></label></div><label>Email<input name="email" required type="email" autocomplete="email" placeholder="anh@example.com" /></label><label>Địa chỉ giao hàng<textarea name="address" required rows="3" placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố"></textarea></label><label>Lời nhắn <span>(không bắt buộc)</span><textarea name="message" rows="2" placeholder="Thời gian giao hàng hoặc ghi chú cho nhân viên tư vấn..."></textarea></label><button class="button primary submit" type="submit">Xác nhận đặt hàng <span>→</span></button><p class="form-error" id="formError" role="alert"></p></form></section>
   </main>
   <footer><a class="brand" href="#top"><span>AEON</span><small>BLACKFRIDAY 2026</small></a><p>© 2026 AEON Black Friday.</p><a href="#top">Lên đầu trang ↑</a></footer>
   <aside class="cart-drawer" id="cartDrawer" aria-hidden="true" aria-label="Giỏ hàng"><div class="drawer-head"><h2>Giỏ hàng của bạn</h2><button id="closeCart" aria-label="Đóng giỏ hàng">×</button></div><div id="cartItems"></div><div class="cart-total"><span>Tổng đơn hàng</span><strong id="cartTotal">0 ₫</strong><small>Phí giao hàng và ưu đãi sẽ được xác nhận khi tư vấn.</small></div><button class="button primary checkout-button" id="goCheckout">Tiếp tục đặt hàng <span>→</span></button></aside><div class="overlay" id="overlay"></div>
@@ -151,7 +151,7 @@
   <script src="data.js?v=20261105-blackfriday-v8"></script>
   <script src="product-rich-text.js?v=20261105-blackfriday-v8"></script>
   <script src="promotion-rich-text.js?v=20261105-blackfriday-v8"></script>
-  <script src="app.js?v=20261105-blackfriday-v8"></script>
+  <script src="app.js?v=20261106-gift-overlay"></script>
 </body>
 </html>
 

@@ -2,6 +2,11 @@ const AEON_DEFAULT_PRODUCTS = [];
 // Only storefront settings carrying this revision may replace the current
 // Black Friday shell. Product data remains independent and is never cleared.
 const AEON_STOREFRONT_REVISION = 'blackfriday-20261104-v7';
+function cleanDealSlotCount(value, fallback = 0) {
+  if (value == null || String(value).trim() === '') return fallback;
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.max(0, Math.min(9999, Math.floor(number))) : fallback;
+}
 // Brand filters are generated from the products themselves.  Do not add a
 // fixed catalogue here: imported/new product brands appear automatically.
 const AEON_BRAND_GROUPS = [];
@@ -116,17 +121,17 @@ const AEON_DEFAULT_UI = {
   heroDisplayMode: 'image-only',
   promotionTitle: 'Thông Tin Chiết Khấu',
   promotionText: 'Ngày 03/08 – 19/08:  từ 1 triệu trở lên: 8%<br>Ngày 20/08 – 25/09:<br>• Từ 3triệu – 10triệu: Chiết khấu 5%|• Trên 10triệu – 15triệu: Chiết khấu 10%<br>• Trên 15triệu – 30triệu: Chiết khấu 12%|• Trên 30triệu: Chiết khấu 15%<br>*Hình thức chiết khấu: Phiếu ưu đãi. Áp dụng cho hộp bánh không rượu.<br>*Không Áp dụng giảm giá ngày Member(5&amp;20).',
-  collectionTitle: 'Danh mục\nđang cập nhật.',
-  collectionNote: 'Sản phẩm, giá bán và hình ảnh sẽ được công bố chính thức trong thời gian tới.',
-  heroImage: '',
+  collectionTitle: 'Deal hot\nBlack Friday.',
+  collectionNote: 'Sản phẩm minh họa có thể thay nhanh bằng file Excel trong trang quản trị.',
+  heroImage: '/assets/black-friday-hero.svg',
   heroPreviewVersion: '',
   logoText: 'AEON',
   logoSubtitle: '',
   logoImage: '',
   logoMode: 'text',
   campaignSchedule: '25/11 – 01/12/2026',
-  quoteExcelUrl: '/assets/uploads/quotes/1785604164925-72j2j0-FO-14-01-Preliminary-Questionnaire-v6.xlsx',
-  quotePdfUrl: '/assets/uploads/quotes/1785604173555-99ij31-AEON-CALATOG-TRUNG-THU-2026.pdf'
+  quoteExcelUrl: '',
+  quotePdfUrl: ''
 };
 
 function normaliseAeonLogoImage(value) {
@@ -302,7 +307,23 @@ const aeonStore = {
   lastWriteAt: Object.create(null),
 
   get(key, fallback) {
-    if (key === 'aeon-layout') return {...deployedStorefrontState['aeon-layout']};
+    if (key === 'aeon-layout') {
+      const canonical = deployedStorefrontState['aeon-layout'] || AEON_DEFAULT_LAYOUT;
+      let saved = {};
+      try {
+        const parsed = JSON.parse(localStorage.getItem(key) || '{}');
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) saved = parsed;
+      } catch {
+        // Use deployed layout values when browser storage is unavailable or invalid.
+      }
+      const desktopColumns = Number(saved.productColumns);
+      const mobileColumns = Number(saved.productColumnsMobile);
+      return {
+        ...canonical,
+        productColumns: [0, 1, 2, 3, 4, 5, 6].includes(desktopColumns) ? desktopColumns : canonical.productColumns,
+        productColumnsMobile: [0, 1, 2].includes(mobileColumns) ? mobileColumns : canonical.productColumnsMobile
+      };
+    }
     try {
       return JSON.parse(localStorage.getItem(key)) ?? fallback;
     } catch {
@@ -311,8 +332,20 @@ const aeonStore = {
   },
 
   set(key, value) {
-    if (key === 'aeon-layout') return Promise.reject(new Error('Bố cục, màu sắc và kích thước đã được khóa theo giao diện mới.'));
-    if (key === 'aeon-ui' || key === 'aeon-layout') {
+    if (key === 'aeon-layout') {
+      const canonical = deployedStorefrontState['aeon-layout'] || AEON_DEFAULT_LAYOUT;
+      const requested = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+      const current = this.get(key, AEON_DEFAULT_LAYOUT);
+      const desktopColumns = Number(requested.productColumns);
+      const mobileColumns = Number(requested.productColumnsMobile);
+      value = {
+        ...canonical,
+        productColumns: [0, 1, 2, 3, 4, 5, 6].includes(desktopColumns) ? desktopColumns : current.productColumns,
+        productColumnsMobile: [0, 1, 2].includes(mobileColumns) ? mobileColumns : current.productColumnsMobile,
+        storefrontRevision: AEON_STOREFRONT_REVISION
+      };
+    }
+    if (key === 'aeon-ui') {
       value = {...(value && typeof value === 'object' ? value : {}), storefrontRevision: AEON_STOREFRONT_REVISION};
     }
     localStorage.setItem(key, JSON.stringify(value));
@@ -381,7 +414,7 @@ const aeonStore = {
   },
 
   layout() {
-    return {...deployedStorefrontState['aeon-layout']};
+    return this.get('aeon-layout', AEON_DEFAULT_LAYOUT);
   },
 
   brands() {

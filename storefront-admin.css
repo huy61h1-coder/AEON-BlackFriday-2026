@@ -15,6 +15,9 @@ body.admin-preview .product{box-shadow:inset 0 0 0 1px rgba(169,22,58,.14)}
 .storefront-product-admin-actions button{min-height:34px;border:1px solid rgba(255,255,255,.78);background:rgba(255,255,255,.94);box-shadow:0 2px 8px rgba(43,31,30,.1);color:var(--wine);font:800 10px 'Be Vietnam Pro';cursor:pointer;padding:7px 9px}
 .storefront-product-admin-actions .storefront-product-delete{min-width:34px;padding:0;color:var(--red);font-size:20px;line-height:1}
 .storefront-product-admin-actions button:hover{border-color:var(--red);background:#fff7f4}
+.storefront-admin-toolbar a{display:inline-flex;align-items:center}
+.storefront-admin-toolbar-actions [data-storefront-appearance]{background:#fff;color:var(--ink)}
+.admin-table .delete-product-setting{min-height:36px;padding:8px 12px}
 .catalog-admin-add{display:inline-flex;margin-top:14px}
 .storefront-admin-editor{position:fixed;z-index:80;inset:0;display:grid;place-items:center;padding:20px;background:rgba(35,24,27,.56);opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s}
 .storefront-admin-editor.show{opacity:1;visibility:visible}
@@ -39,6 +42,27 @@ body.admin-preview .product{box-shadow:inset 0 0 0 1px rgba(169,22,58,.14)}
 .storefront-admin-editor-card footer{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin:13px 0 0;padding:0;background:none}
 .storefront-admin-editor-card footer .button{min-width:150px}
 .storefront-admin-cancel{border:0;background:transparent;color:var(--muted);font:700 11px 'Be Vietnam Pro';cursor:pointer;padding:10px}
+
+/* Match direct product editing controls to the active storefront palette. */
+.storefront-admin-toolbar{border-color:color-mix(in srgb,var(--red) 42%,var(--line));background:color-mix(in srgb,var(--paper) 86%,var(--red) 7%);color:var(--ink)}
+.storefront-admin-status{color:var(--red)}
+.storefront-admin-toolbar-actions button,.storefront-admin-toolbar-actions a,.storefront-admin-toolbar-actions [data-storefront-appearance]{border-color:var(--line);background:var(--paper);color:var(--ink)}
+.storefront-admin-toolbar-actions [data-storefront-new],.catalog-admin-add{border-color:var(--red);background:var(--red);color:#fff}
+.storefront-admin-toolbar-actions [data-storefront-new]:hover,.catalog-admin-add:hover{border-color:var(--wine);background:var(--wine);color:#fff}
+.storefront-admin-toolbar-actions .storefront-admin-logout{background:transparent;color:var(--ink)}
+.storefront-product-admin-actions button{border-color:var(--line);background:var(--paper);color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.storefront-product-admin-actions .storefront-product-delete{color:var(--red)}
+.storefront-product-admin-actions button:hover{border-color:var(--red);background:color-mix(in srgb,var(--red) 18%,var(--paper));color:var(--ink)}
+.storefront-admin-editor-card{border:1px solid var(--line);background:var(--paper);color:var(--ink);box-shadow:0 24px 80px rgba(0,0,0,.28)}
+.storefront-admin-form-grid input,.storefront-admin-form-grid textarea{border-color:var(--line);background:var(--paper);color:var(--ink)}
+.storefront-admin-editor-card .storefront-promotion-fields{grid-column:1/-1;margin:2px 0 16px;padding:13px 15px;border:1px solid #cfc5b9;background:#fcfaf6;color:#242224}
+.storefront-admin-editor-card .storefront-promotion-fields legend{padding:0 7px;color:#a9163a;font-weight:800}
+.storefront-admin-editor-card .storefront-promotion-fields>p{margin:0 0 11px;color:#625c58;font-size:11px;line-height:1.5}
+.storefront-admin-editor-card .storefront-promotion-fields label{color:#242224}
+.storefront-admin-upload button{border-color:var(--line);background:var(--paper);color:var(--ink)}
+.storefront-admin-image-preview{border-color:var(--line);background:color-mix(in srgb,var(--paper) 84%,var(--red) 5%);color:var(--muted)}
+.storefront-admin-form-grid input::placeholder,.storefront-admin-form-grid textarea::placeholder{color:var(--muted);opacity:1}
+.storefront-admin-editor-card :is(button,input,select,textarea):focus-visible{outline:3px solid color-mix(in srgb,var(--red) 72%,white);outline-offset:2px}
 
 @media(max-width:760px){
   .storefront-admin-toolbar{align-items:stretch;flex-direction:column;gap:12px;padding:13px}

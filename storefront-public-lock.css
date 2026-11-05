@@ -1,13 +1,11 @@
 /*
- * Permanent public storefront shell.
- * This file is loaded last and intentionally keeps all management controls in
- * admin.html.  It prevents old inline-editor styles or an existing admin
- * session from changing the customer-facing catalogue.
+ * Keep management controls hidden for visitors. A verified admin session may
+ * use the same add/edit tools on the storefront.
  */
 
-body .storefront-admin-toolbar,
-body .storefront-product-admin-actions,
-body .catalog-admin-add {
+body:not(.admin-preview) .storefront-admin-toolbar,
+body:not(.admin-preview) .storefront-product-admin-actions,
+body:not(.admin-preview) .catalog-admin-add {
   display: none !important;
 }
 

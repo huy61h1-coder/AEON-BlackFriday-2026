@@ -1,6 +1,6 @@
-# AEON BlackFriday 2026
+# AEON Black Friday 2026
 
-Ứng dụng danh mục, báo giá và đặt hàng dành cho AEON BlackFriday 2026.
+Ứng dụng danh mục, báo giá và đặt hàng dành cho AEON Black Friday 2026. Bản bàn giao đã làm sạch dữ liệu thử nghiệm và có 6 sản phẩm minh họa để kiểm tra ngay giao diện.
 
 ## Chức năng
 
@@ -19,6 +19,8 @@ Yêu cầu Node.js 20 trở lên.
 
 ```bash
 npm install
+$env:ADMIN_USERNAME='admin'
+$env:ADMIN_PASSWORD='thay-mat-khau-manh'
 npm start
 ```
 
@@ -62,3 +64,11 @@ tạm khóa tài khoản và phân quyền; mật khẩu tài khoản con đư�
 Tệp `.aeon-store.seed.json` chỉ chứa danh mục và cấu hình giao diện mẫu. Dữ
 liệu khách hàng, đơn hàng và tệp tải lên được lưu cục bộ, đã bị loại khỏi Git
 để không xuất hiện trong repository công khai.
+
+## Quy trình sử dụng nhanh
+
+1. Mở `/admin.html` và đăng nhập bằng tài khoản đã khai báo trong biến môi trường.
+2. Vào **Sản phẩm**, tải file Excel mẫu, điền dữ liệu rồi nhập lại; có thể xem trước và chọn ghi đè hoặc gộp danh mục.
+3. Vào **Giao diện** để đổi banner, logo, màu sắc, kích thước và nội dung chương trình.
+4. Vào **File báo giá** để tải lên Excel/PDF cho khách tải từ trang chủ.
+5. Đơn hàng từ website được lưu vào mục **Khách hàng & đơn hàng**; tại đây có thể xuất Excel tổng hợp hoặc tải PDF cho từng đơn.

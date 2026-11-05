@@ -11,7 +11,7 @@ document.head.append(Object.assign(document.createElement('link'), {rel: 'styles
 document.head.append(Object.assign(document.createElement('link'), {rel: 'stylesheet', href: 'scroll-actions.css'}));
 document.head.append(Object.assign(document.createElement('link'), {rel: 'stylesheet', href: 'admin-refinement.css'}));
 document.head.append(Object.assign(document.createElement('link'), {rel: 'stylesheet', href: 'admin-responsive.css'}));
-document.head.append(Object.assign(document.createElement('link'), {rel: 'stylesheet', href: 'admin-theme-sync.css'}));
+document.head.append(Object.assign(document.createElement('link'), {rel: 'stylesheet', href: 'admin-theme-sync.css?v=20261106-promo-fields'}));
 document.body.append(Object.assign(document.createElement('script'), {src: 'scroll-actions.js'}));
 
 const $ = selector => document.querySelector(selector);
@@ -66,12 +66,11 @@ async function hydrateAdminState() {
     localStorage.removeItem('aeon-customers');
     localStorage.removeItem('aeon-orders');
   }
-  // The storefront and admin must begin from the same deployed campaign
-  // layout. Keep only the deployed UI/layout while still pulling products,
-  // orders and the remaining server-managed data after authentication.
+  // Keep the deployed campaign UI, but pull the saved column counts together
+  // with products, orders and the remaining server-managed data.
   const deployed = window.AEON_DEPLOYED_STOREFRONT_STATE;
   const preserveLocalKeys = deployed && typeof deployed === 'object'
-    ? ['aeon-ui', 'aeon-layout'].filter(key => Object.hasOwn(deployed, key))
+    ? ['aeon-ui'].filter(key => Object.hasOwn(deployed, key))
     : [];
   await aeonStore.pull({preserveLocalKeys});
 }
@@ -99,19 +98,36 @@ function applyAdminTheme(nextLayout = aeonStore.layout()) {
   const page = safeAdminThemeColor(layout.pageBackgroundColor, AEON_DEFAULT_LAYOUT.pageBackgroundColor);
   const section = safeAdminThemeColor(layout.sectionBackgroundColor, AEON_DEFAULT_LAYOUT.sectionBackgroundColor);
   const text = safeAdminThemeColor(layout.textColor, AEON_DEFAULT_LAYOUT.textColor);
+  const pageLuminance = (() => {
+    const channels = [0, 2, 4].map(index => Number.parseInt(page.slice(1).slice(index, index + 2), 16) / 255)
+      .map(component => component <= .04045 ? component / 12.92 : ((component + .055) / 1.055) ** 2.4);
+    return .2126 * channels[0] + .7152 * channels[1] + .0722 * channels[2];
+  })();
+  const darkTheme = pageLuminance < .22;
+  const surface = darkTheme ? mixAdminThemeColor(page, section, .52) : mixAdminThemeColor(page, '#ffffff', .78);
+  const mutedSurface = darkTheme ? mixAdminThemeColor(surface, '#ffffff', .07) : mixAdminThemeColor(section, '#ffffff', .56);
+  const mutedText = darkTheme ? mixAdminThemeColor(text, surface, .38) : mixAdminThemeColor(text, page, .43);
+  const line = darkTheme ? mixAdminThemeColor(text, surface, .20) : mixAdminThemeColor(section, text, .15);
+  const accentSoft = darkTheme ? mixAdminThemeColor(accent, surface, .78) : mixAdminThemeColor(accent, '#ffffff', .9);
+  const accentBorder = darkTheme ? mixAdminThemeColor(accent, surface, .43) : mixAdminThemeColor(accent, '#ffffff', .68);
   const root = document.documentElement;
+  root.dataset.adminTheme = darkTheme ? 'dark' : 'light';
+  root.style.colorScheme = darkTheme ? 'dark' : 'light';
   root.style.setProperty('--red', accent);
   root.style.setProperty('--wine', accentDark);
   root.style.setProperty('--cream', page);
   root.style.setProperty('--paper', section);
   root.style.setProperty('--ink', text);
+  root.style.setProperty('--muted', mutedText);
+  root.style.setProperty('--line', line);
+  root.style.setProperty('--admin-dark-theme', darkTheme ? '1' : '0');
   root.style.setProperty('--admin-sidebar-deep', mixAdminThemeColor(accentDark, '#000000', .38));
   root.style.setProperty('--admin-page-tint', mixAdminThemeColor(page, section, .56));
-  root.style.setProperty('--admin-surface', mixAdminThemeColor(page, '#ffffff', .78));
-  root.style.setProperty('--admin-surface-muted', mixAdminThemeColor(section, '#ffffff', .56));
-  root.style.setProperty('--admin-line', mixAdminThemeColor(section, text, .15));
-  root.style.setProperty('--admin-accent-soft', mixAdminThemeColor(accent, '#ffffff', .9));
-  root.style.setProperty('--admin-accent-border', mixAdminThemeColor(accent, '#ffffff', .68));
+  root.style.setProperty('--admin-surface', surface);
+  root.style.setProperty('--admin-surface-muted', mutedSurface);
+  root.style.setProperty('--admin-line', line);
+  root.style.setProperty('--admin-accent-soft', accentSoft);
+  root.style.setProperty('--admin-accent-border', accentBorder);
 }
 
 function normaliseImageUrl(value) {
@@ -802,7 +818,12 @@ function importedExistingProduct(candidate, products) {
     if (byId) return byId;
   }
   const sku = productIdentity(candidate.sku);
-  return sku ? products.find(product => productIdentity(product.sku) === sku) : null;
+  const bySku = sku ? products.find(product => productIdentity(product.sku) === sku) : null;
+  if (bySku) return bySku;
+  const name = productIdentity(candidate.name);
+  const brand = productIdentity(candidate.brand);
+  return name ? products.find(product => productIdentity(product.name) === name
+    && (!brand || !productIdentity(product.brand) || productIdentity(product.brand) === brand)) : null;
 }
 
 async function saveImportedProducts(drafts) {
@@ -819,6 +840,12 @@ async function saveImportedProducts(drafts) {
     const sku = cleanTextImport(draft.sku, 100);
     let position = requestedId ? products.findIndex(product => cleanTextImport(product.id, 100) === requestedId) : -1;
     if (position < 0 && sku) position = products.findIndex(product => productIdentity(product.sku) === productIdentity(sku));
+    if (position < 0) {
+      const identity = productIdentity(name);
+      const brandIdentity = productIdentity(draft.brand);
+      if (identity) position = products.findIndex(product => productIdentity(product.name) === identity
+        && (!brandIdentity || !productIdentity(product.brand) || productIdentity(product.brand) === brandIdentity));
+    }
     const existing = position >= 0 ? products[position] : null;
     const existingVariants = validAdminProductVariants(existing?.variants);
     const importedVariants = validAdminProductVariants(draft.variants).map((variant, variantIndex) => ({
@@ -845,6 +872,11 @@ async function saveImportedProducts(drafts) {
       description,
       sku,
       label: cleanTextImport(draft.label, 100),
+      promotionProductName: cleanTextImport(draft.promotionProductName ?? existing?.promotionProductName, 160),
+      promotionProductValue: cleanTextImport(draft.promotionProductValue ?? existing?.promotionProductValue, 120),
+      promotionProductImage: normaliseImageUrl(draft.promotionProductImage ?? existing?.promotionProductImage ?? ''),
+      dealSlotsTotal: Math.max(1, cleanDealSlotCount(draft.dealSlotsTotal ?? existing?.dealSlotsTotal, 20)),
+      dealSlotsRemaining: Math.min(Math.max(1, cleanDealSlotCount(draft.dealSlotsTotal ?? existing?.dealSlotsTotal, 20)), cleanDealSlotCount(draft.dealSlotsRemaining ?? existing?.dealSlotsRemaining, 0)),
       weight: cleanMultilineImport(draft.weight, 100),
       ingredients: cleanMultilineImport(draft.ingredients, 300),
       image: normaliseProductImages(draft.images || draft.image || existing?.images || existing?.image || '')[0] || '',
@@ -939,8 +971,8 @@ function renderImportPreview(target, analysis, products) {
 
   target.innerHTML = `
     <div class="import-result-head" aria-live="polite">
-      <div><span class="import-badge">${sourceName}</span><strong>Đã nhận diện ${candidates.length} sản phẩm nháp</strong><p>Kiểm tra và chỉnh sửa trước khi thêm vào danh mục.</p></div>
-      <label class="import-select-all"><input type="checkbox" id="selectAllImports" checked> Chọn tất cả hợp lệ</label>
+      <div><span class="import-badge">${sourceName}</span><strong>Đã nhận diện ${candidates.length} sản phẩm nháp</strong><p>Dòng trùng tên/thương hiệu đã gộp; sản phẩm trùng trong danh mục sẽ được cập nhật khi lưu.</p></div>
+      <label class="import-select-all"><input type="checkbox" id="selectAllImports" checked> Chọn tất cả hợp lệ (kể cả mục trùng)</label>
     </div>
     ${notices.length ? `<div class="import-notices">${notices.map(notice => `<p>• ${escapeHtml(notice)}</p>`).join('')}</div>` : ''}
     <div class="import-candidates">${candidates.map((candidate, index) => {
@@ -948,7 +980,7 @@ function renderImportPreview(target, analysis, products) {
       const warnings = importWarnings(candidate, existing);
       const canSelect = Boolean(cleanTextImport(candidate.name));
       const hasValidVariant = validAdminProductVariants(candidate.variants).some(variant => Number(variant.price) > 0);
-      const selectByDefault = canSelect && (Number(candidate.price) > 0 || hasValidVariant) && !existing;
+      const selectByDefault = canSelect && (Number(candidate.price) > 0 || hasValidVariant);
       return `<article class="import-candidate" data-import-index="${index}" data-existing-id="${escapeHtml(existing?.id || '')}">
         <header><label class="import-check"><input type="checkbox" data-import-select ${selectByDefault ? 'checked' : ''} ${canSelect ? '' : 'disabled'}><span>Chọn sản phẩm ${index + 1}</span></label><span class="import-confidence">Độ tin cậy ${Math.max(0, Math.min(100, Number(candidate.confidence) || 0))}%</span></header>
         <div class="import-fields">
@@ -956,6 +988,11 @@ function renderImportPreview(target, analysis, products) {
           <label>Thương hiệu<input data-import-brand value="${escapeHtml(normaliseAeonBrand(candidate.brand) || normaliseAeonBrand(existing?.brand) || inferAeonBrandFromProductName(candidate.name))}" placeholder="Tự động lấy từ file hoặc tên sản phẩm"></label>
           <label>Giá khuyến mãi (VNĐ)<input data-import-price type="number" min="0" inputmode="numeric" value="${Number(candidate.price) || ''}" required></label>
           <label>Giá thường (VNĐ)<input data-import-original-price type="number" min="0" inputmode="numeric" value="${Number(candidate.originalPrice) || ''}" placeholder="Để trống nếu không giảm giá"></label>
+          <label>Tên sản phẩm khuyến mãi<input data-import-promotion-name value="${escapeHtml(candidate.promotionProductName || existing?.promotionProductName || '')}" placeholder="Ví dụ: Nồi lẩu điện"></label>
+          <label>Giá trị sản phẩm khuyến mãi<input data-import-promotion-value value="${escapeHtml(candidate.promotionProductValue || existing?.promotionProductValue || '')}" placeholder="Ví dụ: 990.000 ₫"></label>
+          <label>Suất còn lại<input data-import-deal-slots-remaining type="number" min="0" max="9999" step="1" value="${cleanDealSlotCount(candidate.dealSlotsRemaining ?? existing?.dealSlotsRemaining, 0)}"></label>
+          <label>Tổng số suất<input data-import-deal-slots-total type="number" min="1" max="9999" step="1" value="${Math.max(1, cleanDealSlotCount(candidate.dealSlotsTotal ?? existing?.dealSlotsTotal, 20))}"></label>
+          <label class="wide">Link ảnh sản phẩm khuyến mãi<input data-import-promotion-image value="${escapeHtml(candidate.promotionProductImage || existing?.promotionProductImage || '')}" placeholder="https://... hoặc /assets/uploads/..."></label>
           <label>Mã sản phẩm<input data-import-sku value="${escapeHtml(candidate.sku || '')}"></label>
           <label class="wide">Mô tả ngắn<textarea data-import-description rows="2">${escapeHtml(candidate.description || '')}</textarea></label>
           <label>Tính năng nổi bật<textarea data-import-ingredients rows="3" placeholder="Mỗi dòng một tính năng">${escapeHtml(candidate.ingredients || '')}</textarea></label>
@@ -974,15 +1011,15 @@ function renderImportPreview(target, analysis, products) {
     importVariantGetters.set(card, bindImportVariantEditor(card));
   });
   const checks = [...target.querySelectorAll('[data-import-select]')];
-  const selectableNew = checks.filter(check => !check.disabled && !check.closest('.import-candidate').dataset.existingId);
+  const selectableNew = checks.filter(check => !check.disabled);
   const updateSelection = () => {
     const selected = checks.filter(check => check.checked).length;
     $('#importSelectionStatus').textContent = selected ? `Sẵn sàng thêm ${selected} sản phẩm đã chọn.` : 'Hãy chọn ít nhất một sản phẩm hợp lệ.';
     $('#saveImportedProducts').disabled = !selected;
     const selectAll = $('#selectAllImports');
-    const selectedNew = selectableNew.filter(check => check.checked).length;
-    selectAll.checked = selectableNew.length > 0 && selectedNew === selectableNew.length;
-    selectAll.indeterminate = selectedNew > 0 && selectedNew < selectableNew.length;
+    const selectedEligible = selectableNew.filter(check => check.checked).length;
+    selectAll.checked = selectableNew.length > 0 && selectedEligible === selectableNew.length;
+    selectAll.indeterminate = selectedEligible > 0 && selectedEligible < selectableNew.length;
   };
   checks.forEach(check => { check.onchange = updateSelection; });
   $('#selectAllImports').onchange = event => {
@@ -1005,6 +1042,11 @@ function renderImportPreview(target, analysis, products) {
           brand: card.querySelector('[data-import-brand]').value,
           price: card.querySelector('[data-import-price]').value,
           originalPrice: card.querySelector('[data-import-original-price]').value,
+          promotionProductName: card.querySelector('[data-import-promotion-name]').value,
+          promotionProductValue: card.querySelector('[data-import-promotion-value]').value,
+          promotionProductImage: card.querySelector('[data-import-promotion-image]').value,
+          dealSlotsRemaining: card.querySelector('[data-import-deal-slots-remaining]').value,
+          dealSlotsTotal: card.querySelector('[data-import-deal-slots-total]').value,
           sku: card.querySelector('[data-import-sku]').value,
           description: card.querySelector('[data-import-description]').value,
           ingredients: card.querySelector('[data-import-ingredients]').value,
@@ -1042,10 +1084,24 @@ function productPanel(panel) {
       <div class="import-results" id="importResults" aria-live="polite"></div>
     </section>
     <section class="admin-card product-list-card">
-      ${products.length ? `<div class="admin-table">${products.map(product => `<div class="table-row"><span><b>${escapeHtml(product.name)}</b><small>${escapeHtml(product.description)}</small></span><span><b>${escapeHtml(normaliseAeonBrand(product.brand) || 'Chưa chọn thương hiệu')}</b><small>${escapeHtml(product.label || 'Không có nhãn hiển thị')}</small></span><strong>${money(product.price)}</strong><button class="edit-product" data-id="${product.id}">Chỉnh sửa</button></div>`).join('')}</div>` : '<p class="empty-admin">Chưa có sản phẩm. Hãy thêm sản phẩm đầu tiên.</p>'}
+      ${products.length ? `<div class="admin-table">${products.map(product => `<div class="table-row"><span><b>${escapeHtml(product.name)}</b><small>${escapeHtml(product.description)}</small></span><span><b>${escapeHtml(normaliseAeonBrand(product.brand) || 'Chưa chọn thương hiệu')}</b><small>${escapeHtml(product.label || 'Không có nhãn hiển thị')}</small></span><strong>${money(product.price)}</strong><button class="edit-product" data-id="${escapeHtml(product.id)}">Chỉnh sửa</button><button class="danger delete-product-setting" data-delete-product="${escapeHtml(product.id)}" aria-label="Xóa ${escapeHtml(product.name)}">Xóa</button></div>`).join('')}</div>` : '<p class="empty-admin">Chưa có sản phẩm. Hãy thêm sản phẩm đầu tiên.</p>'}
     </section>
     <div id="productEditor"></div>`;
   $('#newProduct').onclick = () => openProductEditor();
+  panel.querySelectorAll('[data-delete-product]').forEach(button => {
+    button.onclick = async () => {
+      const id = button.dataset.deleteProduct;
+      const product = aeonStore.products().find(item => String(item.id) === String(id));
+      if (!product || !confirm(`Xóa sản phẩm “${product.name}”?`)) return;
+      try {
+        await aeonStore.deleteProduct(id);
+        productPanel($('#adminPanel'));
+        toastAdmin(`Đã xóa ${product.name} khỏi danh mục.`);
+      } catch (error) {
+        toastAdmin(error.message || 'Không thể xóa sản phẩm.');
+      }
+    };
+  });
   $('#downloadCurrentProducts').onclick = () => downloadCurrentProducts($('#downloadCurrentProducts'));
   $('#downloadProductTemplate').onclick = () => downloadProductTemplate($('#downloadProductTemplate'));
   const importPanel = $('#productImportPanel');
@@ -1144,6 +1200,11 @@ function openProductEditor(id, options = {}) {
     originalPrice: '',
     brand: '',
     label: '',
+    dealSlotsRemaining: 0,
+    dealSlotsTotal: 20,
+    promotionProductName: '',
+    promotionProductValue: '',
+    promotionProductImage: '',
     image: '',
     images: [],
     details: '',
@@ -1167,6 +1228,11 @@ function openProductEditor(id, options = {}) {
     data.variantLabel = data.variants.length ? cleanTextImport(data.variantLabel, 100) || 'Phân loại' : '';
     data.price = data.variants.length ? Math.min(...data.variants.map(variant => variant.price)) : Number(data.price);
     data.originalPrice = Number(data.originalPrice) > data.price ? Math.round(Number(data.originalPrice)) : 0;
+    data.dealSlotsTotal = Math.max(1, cleanDealSlotCount(data.dealSlotsTotal, cleanDealSlotCount(existing.dealSlotsTotal, 20)));
+    data.dealSlotsRemaining = Math.min(data.dealSlotsTotal, cleanDealSlotCount(data.dealSlotsRemaining, cleanDealSlotCount(existing.dealSlotsRemaining, 0)));
+    data.promotionProductName = cleanTextImport(data.promotionProductName, 160);
+    data.promotionProductValue = cleanTextImport(data.promotionProductValue, 120);
+    data.promotionProductImage = normaliseImageUrl(data.promotionProductImage || '');
     if (!Number.isFinite(data.price) || data.price < 0) throw new Error('Giá bán không hợp lệ.');
     data.images = normaliseProductImages([data.image, data.image2, data.image3, data.image4, data.image5, data.images]);
     delete data.image2; delete data.image3; delete data.image4; delete data.image5;
@@ -1208,6 +1274,8 @@ function openProductEditor(id, options = {}) {
           ${id ? '' : `<label>Vị trí trong danh sách<select name="insertPosition">${productInsertPositionOptions(currentProducts)}</select><small>Sản phẩm sẽ được chèn đúng vị trí này khi lưu.</small></label>`}
           <label>Giá khuyến mãi (VNĐ)<small data-variant-price-hint></small><input name="price" type="number" min="0" inputmode="numeric" required value="${existing.price ?? ''}" placeholder="Ví dụ: 750000"${editorVariants.length ? ' readonly' : ''}></label>
           <label>Giá thường (VNĐ)<input name="originalPrice" type="number" min="0" inputmode="numeric" value="${existing.originalPrice ?? ''}" placeholder="Ví dụ: 900000"><small>Để trống nếu không giảm giá.</small></label>
+          <fieldset class="product-promotion-fields image-path wide"><legend>Số suất ưu đãi</legend><p>Màu dải tự chuyển từ vàng sang cam, đỏ theo tỷ lệ suất còn lại.</p><div class="admin-form-grid"><label>Suất còn lại<input name="dealSlotsRemaining" type="number" min="0" max="9999" step="1" value="${cleanDealSlotCount(existing.dealSlotsRemaining, 0)}"></label><label>Tổng số suất<input name="dealSlotsTotal" type="number" min="1" max="9999" step="1" value="${Math.max(1, cleanDealSlotCount(existing.dealSlotsTotal, 20))}"></label></div></fieldset>
+          <fieldset class="product-promotion-fields image-path wide"><legend>Hàng tặng kèm Black Friday</legend><p>Hiển thị ảnh quà tặng và dải “TẶNG … · TRỊ GIÁ …” khi điền đủ cả ba thông tin.</p><div class="admin-form-grid"><label>Tên sản phẩm khuyến mãi<input name="promotionProductName" maxlength="160" value="${escapeHtml(existing.promotionProductName || '')}" placeholder="Ví dụ: Nồi lẩu điện"></label><label>Giá trị sản phẩm khuyến mãi<input name="promotionProductValue" maxlength="120" value="${escapeHtml(existing.promotionProductValue || '')}" placeholder="Ví dụ: 990.000 ₫"></label><label class="wide">Link ảnh sản phẩm khuyến mãi<input name="promotionProductImage" value="${escapeHtml(existing.promotionProductImage || '')}" placeholder="https://... hoặc /assets/uploads/..."></label></div></fieldset>
           <label>Mô tả ngắn<textarea name="description" required rows="2" placeholder="Tóm tắt hiển thị trên thẻ sản phẩm">${escapeHtml(existing.description)}</textarea></label>
           <label>Nhãn hiển thị<input name="label" value="${escapeHtml(existing.label)}"></label>
           <label>Kích thước<textarea name="weight" rows="2" placeholder="Ví dụ: 4 bánh · 720g">${escapeHtml(existing.weight || '')}</textarea></label>

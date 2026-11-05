@@ -1,5 +1,5 @@
 let products = [];
-let cart = JSON.parse(localStorage.getItem('aeon-mooncake-cart') || '[]');
+let cart = JSON.parse(localStorage.getItem('aeon-blackfriday-cart') || localStorage.getItem('aeon-mooncake-cart') || '[]');
 let lastFocusedElement = null;
 let storefrontAdminLastFocus = null;
 
@@ -64,16 +64,23 @@ function normaliseProduct(product) {
   const variants = normaliseVariants(product.variants, price);
   const effectivePrice = price || Math.min(...variants.map(variant => variant.price).filter(value => value > 0), Infinity);
   const originalPrice = productCommerceValue(product, ['originalPrice', 'regularPrice', 'listPrice', 'oldPrice', 'retailPrice', 'normalPrice', 'giaThuong']);
+  const dealSlotsTotal = Math.max(1, cleanDealSlotCount(product.dealSlotsTotal, 20));
+  const dealSlotsRemaining = Math.min(dealSlotsTotal, cleanDealSlotCount(product.dealSlotsRemaining, 0));
   const images = normaliseProductImages(product.images, product.image);
   return {
     id: String(product.id || ''),
     name: String(product.name || 'Sản phẩm đang cập nhật'),
     price,
     originalPrice: originalPrice > effectivePrice ? originalPrice : 0,
+    dealSlotsRemaining,
+    dealSlotsTotal,
     description: String(product.description || ''),
     details: String(product.details || product.description || ''),
     label: String(product.label || ''),
     brand: normaliseAeonBrand(product.brand) || inferAeonBrandFromProductName(product.name),
+    promotionProductName: String(product.promotionProductName || product.promoName || '').trim().slice(0, 160),
+    promotionProductValue: String(product.promotionProductValue || product.promoValue || '').trim().slice(0, 120),
+    promotionProductImage: normaliseImageUrl(product.promotionProductImage || product.promoImage || ''),
     image: images[0] || '',
     images,
     bg: safeColor(product.bg),
@@ -121,6 +128,22 @@ function productPriceMarkup(product, canOrder) {
   const discount = discountPercent(product);
   const regular = Number(product.originalPrice) || 0;
   return `<div class="product-price-stack"><span class="price${canOrder ? '' : ' is-contact'}">${priceLabel(product)}</span>${discount ? `<span class="regular-price">${fmt(regular)}</span>` : ''}</div>`;
+}
+
+function productDealQuotaMarkup(product) {
+  const total = Math.max(1, cleanDealSlotCount(product.dealSlotsTotal, 20));
+  const remaining = Math.min(total, cleanDealSlotCount(product.dealSlotsRemaining, 0));
+  const ratio = remaining / total;
+  const level = remaining === 0 ? 'soldout' : ratio <= .15 ? 'low' : ratio <= .5 ? 'medium' : 'high';
+  return `<div class="product-deal-quota" data-quota-level="${level}" aria-label="${remaining} trên ${total} suất ưu đãi"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="deal-flame-outer" d="M13.3 1.5c.5 3.1-.8 4.7-2.3 6.1-.8-1.1-.9-2.3-.6-3.3C6.6 7.2 4.4 10.1 4.4 14a7.6 7.6 0 0 0 15.2 0c0-4.4-2.3-8.3-6.3-12.5Z"/><path class="deal-flame-inner" d="M12 10.2c.1 1.7-1.9 2.8-1.9 4.8a2.1 2.1 0 1 0 4.2 0c0-1.8-1.1-3.2-2.3-4.8Z"/></svg><span>${remaining}/${total} Suất</span></div>`;
+}
+
+function productSaleOverlayMarkup(product) {
+  const name = String(product.promotionProductName || '').trim();
+  const value = String(product.promotionProductValue || '').trim();
+  const image = normaliseImageUrl(product.promotionProductImage || '');
+  if (!name || !value || !image) return '';
+  return `<span class="bf-gift-promo" role="img" aria-label="Tặng ${escapeHtml(name)}, trị giá ${escapeHtml(value)}"><span class="bf-gift-photo"><img src="${escapeHtml(image)}" alt="" data-image-fallback><span data-image-placeholder hidden>✦</span></span><span class="bf-gift-ribbon"><svg class="bf-gift-bow" viewBox="0 0 90 64" aria-hidden="true"><path d="M44 32C30 6 3 5 7 22c3 12 20 15 37 14M46 32C60 6 87 5 83 22c-3 12-20 15-37 14M42 37 20 59l-3-21m31-1 22 22 3-21" fill="#e21d3f" stroke="#ffd45f" stroke-width="3" stroke-linejoin="round"/><path d="M37 30h16v15H37z" fill="#ffd45f" stroke="#fff2bd" stroke-width="2"/></svg><span class="bf-gift-copy"><strong>TẶNG ${escapeHtml(name)}</strong><em>TRỊ GIÁ ${escapeHtml(value)}</em></span></span></span>`;
 }
 
 function hasVariants(product) {
@@ -190,9 +213,8 @@ $('.cart-total small').textContent = 'Phí giao hàng và ưu đãi sẽ đượ
 $('footer p').textContent = '© 2026 AEON Black Friday.';
 
 document.body.insertAdjacentHTML('beforeend', '<button class="mobile-cart-cta" id="mobileCart" aria-label="Mở giỏ hàng"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 1.9-1.5L20 8H7.1"></path><circle cx="10" cy="20" r="1"></circle><circle cx="17" cy="20" r="1"></circle></svg><span>Giỏ hàng</span><b id="mobileCartCount">0</b><i>Xem giỏ →</i></button>');
-$('.site-header nav').insertAdjacentHTML('beforeend', '<a href="admin.html">Đăng nhập</a>');
 
-['product-detail.css', 'hotline.css?v=20260804-contact', 'promotion.css', 'hero-promotion.css', 'catalog-focus.css', 'hero-compact.css', 'admin-layout.css', 'storefront-refine.css', 'mobile-storefront.css', 'official-assets.css', 'product-modal-fix.css', 'product-variants.css', 'storefront-product-ux.css', 'brand-directory.css', 'storefront-admin.css', 'theme-customization.css', 'quote-download.css', 'catalog-search-sort.css?v=20260804-search-sort'].forEach(href => {
+['product-detail.css', 'hotline.css?v=20260804-contact', 'promotion.css', 'hero-promotion.css', 'catalog-focus.css', 'hero-compact.css', 'admin-layout.css', 'storefront-refine.css', 'mobile-storefront.css', 'official-assets.css', 'product-modal-fix.css', 'product-variants.css', 'storefront-product-ux.css', 'brand-directory.css', 'storefront-admin.css?v=20261106-promo-fields', 'theme-customization.css?v=20261105-contrast', 'quote-download.css', 'catalog-search-sort.css?v=20260804-search-sort', 'toast-contrast.css?v=20261105'].forEach(href => {
   const alreadyLoaded = [...document.head.querySelectorAll('link[rel="stylesheet"]')]
     .some(link => link.getAttribute('href') === href);
   if (!alreadyLoaded) document.head.append(Object.assign(document.createElement('link'), {rel: 'stylesheet', href}));
@@ -292,13 +314,21 @@ mainNav[2].textContent = 'Đặt hàng';
 $('.hero-actions .text-link')?.remove();
 
 function renderStorefrontAdminTools() {
-  // The selling page is permanently a public catalogue.  Management actions
-  // belong in admin.html so an authenticated session can never switch this
-  // page back to the legacy inline-editor layout.
-  document.body.classList.remove('admin-preview');
-  const existing = $('#storefrontAdminToolbar');
-  existing?.remove();
-  closeStorefrontProductEditor();
+  const authenticated = isStorefrontAdmin();
+  document.body.classList.toggle('admin-preview', authenticated);
+  let toolbar = $('#storefrontAdminToolbar');
+  if (!authenticated) {
+    toolbar?.remove();
+    closeStorefrontProductEditor();
+    return;
+  }
+  if (!toolbar) {
+    toolbar = document.createElement('aside');
+    toolbar.id = 'storefrontAdminToolbar';
+    toolbar.className = 'storefront-admin-toolbar';
+    catalogSection.prepend(toolbar);
+  }
+  toolbar.innerHTML = `<div><strong class="storefront-admin-status">ĐANG ĐĂNG NHẬP QUẢN TRỊ</strong><small>Thêm hoặc chỉnh sửa sản phẩm ngay trên trang bán hàng.</small></div><div class="storefront-admin-toolbar-actions"><button type="button" data-storefront-new>+ Thêm sản phẩm</button><button type="button" data-storefront-appearance>Tùy chỉnh giao diện</button><a href="admin.html#products">Cài đặt & danh mục</a><button type="button" class="storefront-admin-logout" data-storefront-logout>Đăng xuất</button></div>`;
 }
 
 function formatBannerRatio(value) {
@@ -448,9 +478,8 @@ function openStorefrontAppearance() {
 }
 
 function storefrontProductAdminActions(product) {
-  // Keep direct product editing out of the public catalogue.  Product data is
-  // unchanged; editing is available from admin.html.
-  return '';
+  if (!isStorefrontAdmin()) return '';
+  return `<div class="storefront-product-admin-actions"><button type="button" data-storefront-edit="${escapeHtml(product.id)}">Sửa</button><button type="button" class="storefront-product-delete" data-storefront-delete="${escapeHtml(product.id)}" aria-label="Xóa ${escapeHtml(product.name)}">×</button></div>`;
 }
 
 function cleanStorefrontProductText(value, limit = 1000, preserveLines = false) {
@@ -580,12 +609,17 @@ function productFromStorefrontForm(form, existing = {}, variants = []) {
     name,
     price: Math.round(price),
     originalPrice: originalPrice > price ? Math.round(originalPrice) : 0,
+    dealSlotsRemaining: Math.min(Math.max(1, cleanDealSlotCount(data.dealSlotsTotal, cleanDealSlotCount(existing.dealSlotsTotal, 20))), cleanDealSlotCount(data.dealSlotsRemaining, cleanDealSlotCount(existing.dealSlotsRemaining, 0))),
+    dealSlotsTotal: Math.max(1, cleanDealSlotCount(data.dealSlotsTotal, cleanDealSlotCount(existing.dealSlotsTotal, 20))),
     label: cleanStorefrontProductText(data.label, 100),
     brand: normaliseAeonBrand(data.brand) || inferAeonBrandFromProductName(name),
     description,
     weight: cleanStorefrontProductText(data.weight, 160, true),
     ingredients: cleanStorefrontProductText(data.ingredients, 250, true),
     sku: cleanStorefrontProductText(data.sku, 100),
+    promotionProductName: cleanStorefrontProductText(data.promotionProductName, 160),
+    promotionProductValue: cleanStorefrontProductText(data.promotionProductValue, 120),
+    promotionProductImage: normaliseImageUrl(data.promotionProductImage || ''),
     variants,
     image: images[0] || '',
     images,
@@ -640,7 +674,7 @@ function openStorefrontProductEditor(id) {
     return;
   }
   const existingImages = found ? normaliseProductImages(found.images, found.image) : [];
-  const existing = found ? {...found, image: existingImages[0] || '', images: existingImages, variants: normaliseVariants(found.variants, Math.max(0, Number(found.price) || 0))} : {id: '', name: '', price: '', originalPrice: '', description: '', details: '', label: '', brand: '', image: '', images: [], weight: '', ingredients: '', sku: '', variants: [], bg: '#e9c38b', box: '#8f1834'};
+  const existing = found ? {...found, image: existingImages[0] || '', images: existingImages, variants: normaliseVariants(found.variants, Math.max(0, Number(found.price) || 0))} : {id: '', name: '', price: '', originalPrice: '', dealSlotsRemaining: 0, dealSlotsTotal: 20, description: '', details: '', label: '', brand: '', image: '', images: [], weight: '', ingredients: '', sku: '', variants: [], promotionProductName: '', promotionProductValue: '', promotionProductImage: '', bg: '#e9c38b', box: '#8f1834'};
   storefrontAdminLastFocus = document.activeElement;
   let modal = $('#storefrontAdminEditor');
   if (!modal) {
@@ -661,6 +695,8 @@ function openStorefrontProductEditor(id) {
         ${existing.id ? '' : `<label>Vị trí trong danh sách<select name="insertPosition">${storefrontProductInsertPositionOptions(aeonStore.products())}</select><small>Sản phẩm sẽ được chèn đúng vị trí này khi lưu.</small></label>`}
         <label>Giá khuyến mãi (VNĐ)<small data-variant-price-hint></small><input name="price" type="number" min="0" inputmode="numeric" required value="${existing.price ?? ''}" placeholder="Ví dụ: 750000"${existing.variants?.length ? ' readonly' : ''}></label>
         <label>Giá thường (VNĐ)<input name="originalPrice" type="number" min="0" inputmode="numeric" value="${existing.originalPrice ?? ''}" placeholder="Ví dụ: 900000"><small>Để trống nếu không giảm giá.</small></label>
+        <fieldset class="storefront-promotion-fields wide"><legend>Số suất ưu đãi</legend><p>Màu dải suất tự chuyển từ vàng sang cam, đỏ khi số suất còn lại giảm.</p><div class="storefront-admin-form-grid"><label>Suất còn lại<input name="dealSlotsRemaining" type="number" min="0" max="9999" step="1" value="${cleanDealSlotCount(existing.dealSlotsRemaining, 0)}"></label><label>Tổng số suất<input name="dealSlotsTotal" type="number" min="1" max="9999" step="1" value="${Math.max(1, cleanDealSlotCount(existing.dealSlotsTotal, 20))}"></label></div></fieldset>
+        <fieldset class="storefront-promotion-fields wide"><legend>Hàng tặng kèm Black Friday</legend><p>Hiển thị ảnh quà tặng và dải “TẶNG … · TRỊ GIÁ …” khi điền đủ cả ba thông tin.</p><label>Tên sản phẩm khuyến mãi<input name="promotionProductName" maxlength="160" value="${escapeHtml(existing.promotionProductName || '')}" placeholder="Ví dụ: Nồi lẩu điện"></label><label>Giá trị sản phẩm khuyến mãi<input name="promotionProductValue" maxlength="120" value="${escapeHtml(existing.promotionProductValue || '')}" placeholder="Ví dụ: 990.000 ₫"></label><label class="wide">Link ảnh sản phẩm khuyến mãi<input name="promotionProductImage" value="${escapeHtml(existing.promotionProductImage || '')}" placeholder="https://... hoặc /assets/uploads/..."></label></fieldset>
         <label>Nhãn hiển thị<input name="label" value="${escapeHtml(existing.label || '')}" placeholder="Ví dụ: Bán chạy"></label>
         <label>Kích thước<textarea name="weight" rows="2" placeholder="Ví dụ: 4 bánh · 720g">${escapeHtml(existing.weight || '')}</textarea></label>
         <label class="wide">Mô tả ngắn<textarea name="description" required rows="2">${escapeHtml(existing.description || '')}</textarea></label>
@@ -1082,8 +1118,9 @@ function renderProducts() {
     return `<article class="product" data-product-id="${escapeHtml(product.id)}">
       ${storefrontProductAdminActions(product)}
       ${discount ? `<span class="discount-percent product-discount-badge" aria-label="Giảm ${discount} phần trăm">-${discount}%</span>` : ''}
-      <button class="product-media product-view" data-view="${escapeHtml(product.id)}" style="--product-bg:${safeColor(product.bg)}" aria-label="Xem chi tiết ${escapeHtml(product.name)}">
+      <button class="product-media product-view" data-view="${escapeHtml(product.id)}" style="--product-bg:${safeColor(product.bg)}" aria-label="Xem chi tiết ${escapeHtml(product.name)}${discount ? `, giảm ${discount}% dịp Black Friday` : ''}">
         ${product.label ? `<span class="tag">${escapeHtml(product.label)}</span>` : ''}
+        ${productSaleOverlayMarkup(product)}
         ${productImageMarkup(product, 'product-official-image', 'product-image-placeholder', 'Hình ảnh<br>đang cập nhật')}
       </button>
       <div class="product-info">
@@ -1095,6 +1132,7 @@ function renderProducts() {
             ${variants ? `<button class="product-choose" data-view="${escapeHtml(product.id)}" aria-label="Chọn phân loại cho ${escapeHtml(product.name)}">Chọn loại</button>` : canOrder ? `<button class="product-add" data-add="${escapeHtml(product.id)}" aria-label="Thêm ${escapeHtml(product.name)} vào giỏ hàng" title="Thêm vào giỏ hàng"><svg class="product-cart-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 1.9-1.5L20 8H7.1"></path><circle cx="10" cy="20" r="1"></circle><circle cx="17" cy="20" r="1"></circle></svg><span class="sr-only">Thêm vào giỏ hàng</span></button>` : '<a class="product-contact" href="tel:0327747337">Liên hệ</a>'}
           </div>
         </div>
+        ${productDealQuotaMarkup(product)}
       </div>
     </article>`;
   }).join('');
@@ -1160,7 +1198,7 @@ if (typeof ResizeObserver !== 'undefined' && grid) {
 }
 
 function saveCart() {
-  localStorage.setItem('aeon-mooncake-cart', JSON.stringify(cart));
+  localStorage.setItem('aeon-blackfriday-cart', JSON.stringify(cart));
 }
 
 function totals() {
@@ -1287,7 +1325,7 @@ function openProductDetail(id) {
   const variantLabel = product.variantLabel || 'Phân loại';
   const variantPrompt = `Chọn ${variantLabel.toLocaleLowerCase('vi-VN')}`;
   const featureText = String(product.ingredients || 'Thông tin đang cập nhật').replace(/\s*-\s*/g, '\n- ');
-  $('#productDetailBody').innerHTML = `<div class="detail-art" style="--product-bg:${safeColor(product.bg)}">${detailGalleryMarkup(product)}</div>
+  $('#productDetailBody').innerHTML = `<div class="detail-art" style="--product-bg:${safeColor(product.bg)}">${productSaleOverlayMarkup(product)}${detailGalleryMarkup(product)}</div>
     <div class="detail-copy">${product.brand ? `<p class="detail-brand">${escapeHtml(product.brand)}</p>` : ''}${product.label ? `<p class="eyebrow">${escapeHtml(product.label)}</p>` : ''}<h2>${escapeHtml(String(product.name || ''))}</h2><p class="detail-price" id="detailPrice">${priceLabel(product)}</p>${variants ? `<section class="detail-variant-picker" aria-labelledby="detailVariantLabel"><div class="detail-variant-head"><span id="detailVariantLabel">${escapeHtml(variantPrompt)}</span><b id="detailVariantStatus">Vui lòng chọn một lựa chọn</b></div><div class="detail-variant-options" role="group" aria-label="${escapeHtml(variantLabel)}">${product.variants.map(variant => `<button type="button" data-detail-variant="${escapeHtml(variant.id)}" aria-pressed="false"><span>${escapeHtml(variant.name)}</span><strong>${variant.price > 0 ? fmt(variant.price) : 'Liên hệ'}</strong></button>`).join('')}</div></section>` : ''}<p class="detail-meta" id="detailSku"${product.sku ? '' : ' hidden'}>${product.sku ? `Mã sản phẩm: ${escapeHtml(product.sku)}` : ''}</p><dl><div><dt>Tính năng nổi bật</dt><dd>${escapeHtml(featureText)}</dd></div><div><dt>Kích thước</dt><dd>${escapeHtml(product.weight || 'Thông tin đang cập nhật')}</dd></div></dl><div class="detail-actions">${variants ? `<button class="button primary" data-detail-add="${escapeHtml(product.id)}" id="detailAdd" disabled>${escapeHtml(variantPrompt)}</button><button class="quantity-button" data-detail-qty="-1" aria-label="Giảm số lượng">−</button><b id="detailQty">1</b><button class="quantity-button" data-detail-qty="1" aria-label="Tăng số lượng">+</button>` : canOrder ? `<button class="button primary" data-detail-add="${escapeHtml(product.id)}" id="detailAdd">Thêm vào giỏ <span>→</span></button><button class="quantity-button" data-detail-qty="-1" aria-label="Giảm số lượng">−</button><b id="detailQty">1</b><button class="quantity-button" data-detail-qty="1" aria-label="Tăng số lượng">+</button>` : '<a class="button primary" href="tel:0327747337">Liên hệ tư vấn <span>→</span></a>'}</div></div>`;
   modal.dataset.id = id;
   modal.dataset.qty = '1';
