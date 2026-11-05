@@ -2,6 +2,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const canonicalLayout = require('./storefront-state')['aeon-layout'];
 const {analyseProductFile, kindFromFile} = require('./product-import');
 const XLSX = require('xlsx');
 const ExcelJS = require('exceljs');
@@ -318,6 +319,7 @@ function publicStorefrontState(state) {
   ['aeon-products', 'aeon-ui', 'aeon-layout', 'aeon-brands'].forEach(key => {
     if (Object.hasOwn(state || {}, key)) visible[key] = state[key];
   });
+  visible['aeon-layout'] = {...canonicalLayout};
   return visible;
 }
 
@@ -465,6 +467,7 @@ function publicStoreStateMarkup(state) {
   ['aeon-products', 'aeon-ui', 'aeon-layout', 'aeon-brands'].forEach(key => {
     if (Object.hasOwn(state, key)) publicState[key] = state[key];
   });
+  publicState['aeon-layout'] = {...canonicalLayout};
   const encoded = JSON.stringify(publicState)
     .replace(/</g, '\\u003c')
     .replace(/>/g, '\\u003e')
@@ -485,7 +488,7 @@ function layoutColor(value, fallback) {
 }
 
 function initialLayoutStyle(state) {
-  const layout = state?.['aeon-layout'] || {};
+  const layout = canonicalLayout;
   const headerHeight = layoutNumber(layout.headerHeight, 10, 112, 82);
   const heroHeight = layoutNumber(layout.heroHeight, 0, 700, 0);
   const sectionSpacing = layoutNumber(layout.sectionSpacing, 0, 170, 0);
@@ -1597,7 +1600,7 @@ http.createServer(async (request, response) => {
       if (!allowedKeys.has(key)) return json(response, 400, {error:'Không thể lưu loại dữ liệu này.'});
       const state = readState();
       if (key === 'aeon-products' && !requirePermission(request, response, 'products')) return;
-      if (key === 'aeon-layout' && !requirePermission(request, response, 'interface')) return;
+      if (key === 'aeon-layout') return json(response, 409, {error:'Bố cục, màu sắc và kích thước đã được khóa theo giao diện mới.'});
       if (key === 'aeon-brands' && !requirePermission(request, response, 'brands')) return;
       if (key === 'aeon-ui') {
         const principal = adminPrincipal(request);

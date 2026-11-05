@@ -300,6 +300,7 @@ const aeonStore = {
   lastWriteAt: Object.create(null),
 
   get(key, fallback) {
+    if (key === 'aeon-layout') return {...deployedStorefrontState['aeon-layout']};
     try {
       return JSON.parse(localStorage.getItem(key)) ?? fallback;
     } catch {
@@ -308,6 +309,7 @@ const aeonStore = {
   },
 
   set(key, value) {
+    if (key === 'aeon-layout') return Promise.reject(new Error('Bố cục, màu sắc và kích thước đã được khóa theo giao diện mới.'));
     if (key === 'aeon-ui' || key === 'aeon-layout') {
       value = {...(value && typeof value === 'object' ? value : {}), storefrontRevision: AEON_STOREFRONT_REVISION};
     }
@@ -377,7 +379,7 @@ const aeonStore = {
   },
 
   layout() {
-    return {...AEON_DEFAULT_LAYOUT, ...this.get('aeon-layout', {})};
+    return {...deployedStorefrontState['aeon-layout']};
   },
 
   brands() {

@@ -1,7 +1,7 @@
 // Stable storefront settings for static GitHub/Netlify deployments.
 // Product data deliberately stays in the API state so a visual update can
 // never replace the current product catalogue or product images.
-window.AEON_DEPLOYED_STOREFRONT_STATE = {
+const canonicalStorefrontState = {
   "aeon-ui": {
     "storefrontRevision": "blackfriday-20261104-v7",
     "eyebrow": "BLACK FRIDAY 2026",
@@ -46,3 +46,5 @@ window.AEON_DEPLOYED_STOREFRONT_STATE = {
     "logoSize": 18
   }
 };
+if (typeof window !== 'undefined') window.AEON_DEPLOYED_STOREFRONT_STATE = canonicalStorefrontState;
+if (typeof module !== 'undefined' && module.exports) module.exports = canonicalStorefrontState;
