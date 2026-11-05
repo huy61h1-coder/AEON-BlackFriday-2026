@@ -23,6 +23,9 @@ const checks = [
   ,['index.html', 'id="public-storefront-critical-lock"', 'HTML phải có khóa giao diện công khai nội tuyến để chống tài nguyên cache cũ.']
   ,['admin.js', "assetPanel(panel, {logo: true, hero: false});", 'Logo phải được quản lý riêng cùng danh mục sản phẩm.']
   ,['admin.js', "await saveShared('aeon-layout', {...layout, ...values});", 'Lưu giao diện phải chỉ ghi khóa bố cục, không ghi danh mục sản phẩm.']
+  ,['data.js', "heroDisplayMode: 'image-only'", 'Fallback giao diện không được quay lại bố cục hero cũ.']
+  ,['data.js', "pageBackgroundColor: '#080808'", 'Fallback giao diện phải giữ nền BlackFriday.']
+  ,['data.js', "productColumns: 5", 'Fallback giao diện phải giữ bố cục 5 cột mới.']
 ];
 
 const failures = checks.filter(([file, marker]) => !read(file).includes(marker));

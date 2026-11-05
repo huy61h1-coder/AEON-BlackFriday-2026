@@ -113,19 +113,20 @@ const AEON_DEFAULT_UI = {
   eyebrow: 'BLACK FRIDAY 2026',
   title: 'BlackFriday',
   intro: 'BlackFriday 2026, Top sản phẩm có giá ưu đãi đặc biệt.',
-  heroDisplayMode: 'content-image',
-  promotionTitle: 'Ưu đãi mùa trăng',
-  promotionText: '03–19/08: giảm 8% từ 1 triệu · 20/08–25/09: giảm 5–15% từ 3 triệu',
+  heroDisplayMode: 'image-only',
+  promotionTitle: 'Thông Tin Chiết Khấu',
+  promotionText: 'Ngày 03/08 – 19/08:  từ 1 triệu trở lên: 8%<br>Ngày 20/08 – 25/09:<br>• Từ 3triệu – 10triệu: Chiết khấu 5%|• Trên 10triệu – 15triệu: Chiết khấu 10%<br>• Trên 15triệu – 30triệu: Chiết khấu 12%|• Trên 30triệu: Chiết khấu 15%<br>*Hình thức chiết khấu: Phiếu ưu đãi. Áp dụng cho hộp bánh không rượu.<br>*Không Áp dụng giảm giá ngày Member(5&amp;20).',
   collectionTitle: 'Danh mục\nđang cập nhật.',
   collectionNote: 'Sản phẩm, giá bán và hình ảnh sẽ được công bố chính thức trong thời gian tới.',
   heroImage: '',
   heroPreviewVersion: '',
   logoText: 'AEON',
-  logoSubtitle: 'SIÊU SALE',
+  logoSubtitle: '',
   logoImage: '',
   logoMode: 'text',
-  quoteExcelUrl: '/assets/downloads/bao-gia-banh-trung-thu-aeon-2026.xlsx',
-  quotePdfUrl: ''
+  campaignSchedule: '25/11 – 01/12/2026',
+  quoteExcelUrl: '/assets/uploads/quotes/1785604164925-72j2j0-FO-14-01-Preliminary-Questionnaire-v6.xlsx',
+  quotePdfUrl: '/assets/uploads/quotes/1785604173555-99ij31-AEON-CALATOG-TRUNG-THU-2026.pdf'
 };
 
 function normaliseAeonLogoImage(value) {
@@ -219,26 +220,27 @@ function renderAeonBrandLogos(ui = {}, root = document) {
 }
 
 const AEON_DEFAULT_LAYOUT = {
-  heroTitleSize: 68,
-  heroIntroSize: 15,
-  bannerAspectRatio: 21 / 9,
+  storefrontRevision: 'blackfriday-20261104-v7',
+  heroTitleSize: 35,
+  heroIntroSize: 13,
+  bannerAspectRatio: 1.5,
   heroButtonAlign: 'left',
-  productTitleSize: 15,
+  productTitleSize: 12,
   productButtonAlign: 'left',
   checkoutButtonAlign: 'stretch',
-  accentColor: '#a9163a',
-  accentDarkColor: '#71162b',
-  pageBackgroundColor: '#fbf8f1',
-  sectionBackgroundColor: '#f2ede2',
-  textColor: '#242224',
-  headerHeight: 82,
+  accentColor: '#e21d3f',
+  accentDarkColor: '#9e102a',
+  pageBackgroundColor: '#080808',
+  sectionBackgroundColor: '#15100f',
+  textColor: '#fffaf4',
+  headerHeight: 60,
   heroHeight: 0,
   sectionSpacing: 0,
   productImageHeight: 0,
-  productColumns: 0,
-  productColumnsMobile: 0,
+  productColumns: 5,
+  productColumnsMobile: 2,
   fontFamily: 'aeon-default',
-  logoSize: 25
+  logoSize: 18
 };
 
 const sharedKeys = ['aeon-products', 'aeon-ui', 'aeon-layout', 'aeon-brands', 'aeon-customers', 'aeon-orders'];
